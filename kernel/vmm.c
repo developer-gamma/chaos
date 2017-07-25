@@ -15,13 +15,20 @@
 **	- Support pages of different size.
 */
 
+#include <kernel/spinlock.h>
 #include <kernel/init.h>
 #include <kernel/unit-tests.h>
 #include <kernel/vmm.h>
 #include <stdio.h>
 
+/* Heap main variables */
 virt_addr_t kernel_heap_start;
 size_t kernel_heap_size;
+
+/* Malloc's linked list */
+static struct malloc_node *first;
+static struct malloc_node *last;
+static struct spinlock lock;
 
 /*
 ** Maps a physical address to a virtual one.

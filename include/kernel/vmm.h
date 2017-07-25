@@ -32,6 +32,20 @@ struct vaspace
 	struct arch_vaspace arch;
 };
 
+enum malloc_node_status
+{
+	NODE_TAKEN,
+	NODE_FREE,
+};
+
+struct malloc_node
+{
+	struct malloc_node *next;
+	struct malloc_node *prev;
+	size_t size;
+	enum malloc_node_status status;
+};
+
 status_t		map_virt_to_phys();
 status_t		map_page(virt_addr_t va);
 virt_addr_t		mmap(virt_addr_t va, size_t size);
