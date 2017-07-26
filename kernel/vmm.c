@@ -15,7 +15,6 @@
 **	- Support pages of different size.
 */
 
-#include <kernel/spinlock.h>
 #include <kernel/init.h>
 #include <kernel/unit-tests.h>
 #include <kernel/vmm.h>
@@ -24,11 +23,6 @@
 /* Heap main variables */
 virt_addr_t kernel_heap_start;
 size_t kernel_heap_size;
-
-/* Malloc's linked list */
-static struct malloc_node *first;
-static struct malloc_node *last;
-static struct spinlock lock;
 
 /*
 ** Maps a physical address to a virtual one.
@@ -141,16 +135,6 @@ ksbrk(intptr inc)
 {
 	kbrk(kernel_heap_start + kernel_heap_size + inc);
 	return (kernel_heap_start + kernel_heap_size);
-}
-
-/*
-** Kernel memory allocator.
-** This is NOT suitable for user-space memory allocation.
-*/
-virt_addr_t
-kmalloc(size_t size)
-{
-	return (NULL);
 }
 
 /*
