@@ -25,7 +25,7 @@ static struct malloc_node *last = NULL;
 static struct spinlock lock;
 
 /*
-** malloc(), but with memory in kernel space.
+** malloc(), but using memory in kernel space.
 */
 virt_addr_t
 kmalloc(size_t size)
@@ -36,7 +36,7 @@ kmalloc(size_t size)
 }
 
 /*
-** free(), but with memory in kernel space.
+** free(), but using memory in kernel space.
 */
 void
 kfree(virt_addr_t ptr)
