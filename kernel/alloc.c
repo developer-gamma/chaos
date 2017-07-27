@@ -15,23 +15,17 @@
 /*
 ** Kernel memory allocator.
 ** This is NOT suitable for user-space memory allocation.
-**
-** This is a naïve implementation, so yeah, it sucks.
 */
 
-/* Malloc's linked list */
-static struct malloc_node *first = NULL;
-static struct malloc_node *last = NULL;
-static struct spinlock lock;
+/* Malloc's data structures */
 
 /*
 ** malloc(), but using memory in kernel space.
 */
 virt_addr_t
-kmalloc(size_t size)
+kalloc(size_t size)
 {
-	acquire_lock(&lock);
-	release_lock(&lock);
+	(void)size;
 	return (NULL);
 }
 
@@ -41,8 +35,7 @@ kmalloc(size_t size)
 void
 kfree(virt_addr_t ptr)
 {
-	acquire_lock(&lock);
-	release_lock(&lock);
+	(void)ptr;
 }
 
 static void

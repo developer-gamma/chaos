@@ -13,21 +13,7 @@
 # include <kernel/vmm.h>
 # include <chaosdef.h>
 
-enum malloc_node_status
-{
-	NODE_TAKEN,
-	NODE_FREE,
-};
-
-struct malloc_node
-{
-	struct malloc_node *next;
-	struct malloc_node *prev;
-	size_t size;
-	enum malloc_node_status status;
-};
-
-virt_addr_t	kmalloc(size_t);
+virt_addr_t	kalloc(size_t);
 void		kfree(virt_addr_t);
 
 #endif /* !_KERNEL_ALLOC_H_ */
