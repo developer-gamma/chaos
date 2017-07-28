@@ -13,6 +13,19 @@
 # include <kernel/vmm.h>
 # include <chaosdef.h>
 
+struct block
+{
+	bool used;
+	size_t size;
+	struct block *prev;
+};
+
+struct alloc_datas
+{
+	struct block *head;
+	struct block *tail;
+};
+
 virt_addr_t	kalloc(size_t);
 void		kfree(virt_addr_t);
 

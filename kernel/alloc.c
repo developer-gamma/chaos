@@ -18,6 +18,11 @@
 */
 
 /* Malloc's data structures */
+struct alloc_datas alloc_datas =
+{
+	.head = (void *)1u,
+	.tail = NULL,
+};
 
 /*
 ** malloc(), but using memory in kernel space.
