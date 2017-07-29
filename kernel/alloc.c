@@ -43,6 +43,28 @@ kfree(virt_addr_t ptr)
 	(void)ptr;
 }
 
+/*
+** realloc(), but using memory in kernel space.
+*/
+virt_addr_t
+krealloc(virt_addr_t old, size_t ns)
+{
+	(void)old;
+	(void)ns;
+	return (NULL);
+}
+
+/*
+** calloc(), but using memory in kernel space.
+*/
+virt_addr_t
+kcalloc(size_t a, size_t b)
+{
+	(void)a;
+	(void)b;
+	return (NULL);
+}
+
 static void
 init_kmalloc(enum init_level il __unused)
 {

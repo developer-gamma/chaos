@@ -27,6 +27,8 @@ struct alloc_datas
 };
 
 virt_addr_t	kalloc(size_t);
+virt_addr_t	krealloc(virt_addr_t, size_t);
+virt_addr_t	kcalloc(size_t, size_t);
 void		kfree(virt_addr_t);
 
 #endif /* !_KERNEL_ALLOC_H_ */
