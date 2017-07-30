@@ -29,6 +29,76 @@ struct alloc_datas alloc_datas =
 };
 
 /*
+** Looks for a free block that can contain at least the given size.
+*/
+static struct block *
+get_free_block(size_t size)
+{
+	struct block *block;
+
+	block = alloc_datas.head;
+	while (block <= alloc_datas.tail)
+	{
+		if (!block->used && block->size >= size)
+			return (block);
+		block = (struct block *)((char *)block + sizeof(struct block) + block->size);
+	}
+	return (NULL);
+}
+
+/*
+** Split the given block at the given size, if possible.
+** Note that size must not be greater that the block size.
+*/
+static void
+split_block(struct block *block, size_t size)
+{
+	struct block *new;
+	struct block *next;
+
+	if (block->size - size > sizeof(struct block) + 1)
+	{
+		new = (struct block *)((char *)block + sizeof(struct block) + size);
+		new->used = false;
+		new->size = block->size - size - sizeof(struct block);
+		if (alloc_datas.tail == block) {
+			alloc_datas.tail = new;
+		}
+		block->size = size;
+		new->prev = block;
+
+		next = (struct block *)((char *)new + sizeof(struct block) + new->size);
+		if (next <= alloc_datas.tail) {
+			next->prev = new;
+		}
+	}
+}
+
+/*
+** Try to join the given block with the next one if they are both free.
+*/
+static void
+join_block(struct block *block)
+{
+	struct block *other;
+	struct block *next;
+
+	other = (struct block *)((char *)block + sizeof(struct block) + block->size);
+	if (!block->used && other <= alloc_datas.tail && !other->used)
+	{
+		block->size += sizeof(struct block) + other->size;
+		if (other == alloc_datas.tail) {
+			alloc_datas.tail = block;
+		}
+
+		next = (struct block *)((char *)other + sizeof(struct block) + other->size);
+		if (next <= alloc_datas.tail) {
+			next->prev = block;
+		}
+	}
+}
+
+/*
 ** malloc(), but using memory in kernel space.
 */
 virt_addr_t
