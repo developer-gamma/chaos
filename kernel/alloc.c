@@ -11,6 +11,7 @@
 #include <kernel/spinlock.h>
 #include <kernel/init.h>
 #include <stdio.h>
+#include <string.h>
 
 /*
 ** Kernel memory allocator.
@@ -169,9 +170,13 @@ krealloc(virt_addr_t old, size_t ns)
 virt_addr_t
 kcalloc(size_t a, size_t b)
 {
-	(void)a;
-	(void)b;
-	return (NULL);
+	void *ptr;
+
+	ptr = kalloc(a * b);
+	if (likely(ptr != NULL)) {
+		memset(ptr, 0, a * b);
+	}
+	return (ptr);
 }
 
 static void
