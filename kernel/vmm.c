@@ -19,6 +19,7 @@
 #include <kernel/unit-tests.h>
 #include <kernel/vmm.h>
 #include <stdio.h>
+#include <string.h>
 
 /* Heap main variables */
 virt_addr_t kernel_heap_start;
@@ -76,7 +77,7 @@ mmap(virt_addr_t va, size_t size)
 	assert(IS_PAGE_ALIGNED(va));
 	assert(IS_PAGE_ALIGNED(size));
 	ori_va = va;
-	if (va == NULL) /* Random virtual address */
+	if (va == NULL) /* Allocate on the memory mapping segment */
 	{
 		panic("NULL mmap() not implemented (yet)!");
 	}
@@ -165,9 +166,7 @@ vmm_init(enum init_level il __unused)
 	kernel_heap_size = 0;
 
 	/* Set-up default virtual space for boot thread */
-	default_vaspace.data_start = 0;
-	default_vaspace.data_pos = 0;
-	default_vaspace.data_size = 0;
+	memset(&default_vaspace, 0, sizeof(default_vaspace));
 	arch_vmm_init();
 
 	/* Allocate the first heap page or the kbrk algorithm will not work. */

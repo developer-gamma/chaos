@@ -22,13 +22,25 @@ typedef void 		*virt_addr_t;
 */
 struct vaspace
 {
-	uintptr data_start;
-	uintptr data_pos;
-	size_t data_size;
+	/* 0xFFFFFFFF */
 
-	uintptr stack_start;
-	size_t stack_size;
+	/* Kernel space */
 
+	/* 0xCFFFFFFF */
+
+	/* Memory Mapping segment (stacks, dynamic libraries etc.) (goes downward) */
+	uintptr mmapping_start;
+	size_t mmapping_size;
+	uintptr mmapping_pos;
+
+	/* heap segment (goes upward) */
+	uintptr heap_pos;
+	size_t heap_size;
+	uintptr heap_start;
+
+	uintptr binary_limit; /* Binary goes from 0x0 to this */
+
+	/* 0x00000000 */
 	struct arch_vaspace arch;
 };
 
