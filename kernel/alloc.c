@@ -104,8 +104,32 @@ join_block(struct block *block)
 virt_addr_t
 kalloc(size_t size)
 {
-	(void)size;
-	return (NULL);
+	struct block *block;
+
+	assert(sizeof(struct block) % sizeof(void *) == 0);
+	size += (size == 0);
+	size = ALIGN(size, sizeof(void *));
+	block = get_free_block(size);
+	if (block) {
+		block->used = true;
+		split_block(block, size);
+		return ((void *)((char *)block + sizeof(struct block)));
+	}
+	block = ksbrk(sizeof(struct block) + size);
+	if (unlikely(block == (void *)-1u)) {
+		return (NULL);
+	}
+	block->used = true;
+	block->size = size;
+	block->prev = alloc_datas.tail;
+	alloc_datas.tail = block;
+	if (unlikely(alloc_datas.head == (void *)1u)) {
+		alloc_datas.head = block;
+	}
+	if (block->prev) {
+		join_block(block->prev);
+	}
+	return ((void *)((char *)block + sizeof(struct block)));
 }
 
 /*
@@ -114,7 +138,18 @@ kalloc(size_t size)
 void
 kfree(virt_addr_t ptr)
 {
-	(void)ptr;
+	struct block *block;
+
+	if (ptr)
+	{
+		block = (struct block *)((char *)ptr - sizeof(struct block));
+		assert(block->used);
+		block->used = false;
+		join_block(block);
+		if (block->prev) {
+			join_block(block->prev);
+		}
+	}
 }
 
 /*
