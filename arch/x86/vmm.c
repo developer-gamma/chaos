@@ -236,7 +236,7 @@ vmm_test(void)
 	ksbrk(0);
 	assert(is_allocated(brk));
 	assert_eq(kernel_heap_size, 0);
-	assert_eq(ksbrk(-1), brk);
+	assert_eq(ksbrk(-1), (virt_addr_t)-1u);
 	assert_eq(ksbrk(0), brk);
 	ksbrk(1);
 	assert(is_allocated(brk));
@@ -248,12 +248,12 @@ vmm_test(void)
 	assert_eq(ksbrk(0), brk);
 
 	/* medium ksbrk tests */
-	assert_eq(ksbrk(PAGE_SIZE), brk + PAGE_SIZE);
+	assert_eq(ksbrk(PAGE_SIZE), brk);
 	assert_eq(kernel_heap_size, PAGE_SIZE);
 	assert(is_allocated(brk));
 	assert(is_allocated(brk + PAGE_SIZE));
 	assert(is_allocated(ksbrk(0)));
-	assert_eq(ksbrk(-PAGE_SIZE), brk);
+	assert_eq(ksbrk(-PAGE_SIZE), brk + PAGE_SIZE);
 	assert_eq(kernel_heap_size, 0);
 	assert(is_allocated(brk));
 	assert(!is_allocated(brk + PAGE_SIZE));
@@ -261,18 +261,18 @@ vmm_test(void)
 	assert_eq(ksbrk(0), brk);
 
 	/* huge ksbrk tests */
-	assert_eq(ksbrk(10 * PAGE_SIZE), brk + 10 * PAGE_SIZE);
+	assert_eq(ksbrk(10 * PAGE_SIZE), brk);
 	assert(is_allocated(brk));
 	assert(is_allocated(brk + 5 * PAGE_SIZE));
 	assert(is_allocated(brk + 10 * PAGE_SIZE));
 	assert(!is_allocated(brk + 11 * PAGE_SIZE));
 	assert_eq(ksbrk(0), brk + 10 * PAGE_SIZE);
-	assert_eq(ksbrk(-5 * PAGE_SIZE), brk + 5 * PAGE_SIZE);
+	assert_eq(ksbrk(-5 * PAGE_SIZE), brk + 10 * PAGE_SIZE);
 	assert_eq(ksbrk(0), brk + 5 * PAGE_SIZE);
 	assert_eq(kernel_heap_size, 5 * PAGE_SIZE);
 	assert(is_allocated(brk + 5 * PAGE_SIZE));
 	assert(!is_allocated(brk + 6 * PAGE_SIZE));
-	assert_eq(ksbrk(-5 * PAGE_SIZE), brk);
+	assert_eq(ksbrk(-5 * PAGE_SIZE), brk + 5 * PAGE_SIZE);
 	assert_eq(ksbrk(0), brk);
 	assert_eq(kernel_heap_size, 0);
 	assert(!is_allocated(brk + 5 * PAGE_SIZE));
@@ -281,5 +281,6 @@ vmm_test(void)
 	/* tricky kbrk tests */
 	assert_eq(kbrk(NULL), ERR_INVALID_ARGS);
 	assert_eq(ksbrk(0), brk);
+	assert_eq(ksbrk(-100000), (virt_addr_t)-1u);
 }
 

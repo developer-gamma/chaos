@@ -119,13 +119,12 @@ kbrk(virt_addr_t new_brk)
 				kernel_heap_size -= add;
 				return (ERR_NO_MEMORY);
 			}
-			return (OK);
 		}
 		else if (round_add < 0)
 		{
 			munmap(brk + round_add + PAGE_SIZE, -round_add);
-			return (OK);
 		}
+		return (OK);
 	}
 	return (ERR_INVALID_ARGS);
 }
@@ -133,8 +132,13 @@ kbrk(virt_addr_t new_brk)
 virt_addr_t
 ksbrk(intptr inc)
 {
-	kbrk(kernel_heap_start + kernel_heap_size + inc);
-	return (kernel_heap_start + kernel_heap_size);
+	void *old_brk;
+
+	old_brk = kernel_heap_start + kernel_heap_size;
+	if (kbrk(kernel_heap_start + kernel_heap_size + inc) == OK) {
+		return (old_brk);
+	}
+	return ((virt_addr_t)-1u);
 }
 
 /*
