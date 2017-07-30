@@ -159,9 +159,16 @@ kfree(virt_addr_t ptr)
 virt_addr_t
 krealloc(virt_addr_t old, size_t ns)
 {
-	(void)old;
-	(void)ns;
-	return (NULL);
+	void *ptr;
+	struct block *block;
+
+	ptr = kalloc(ns);
+	if (ptr != NULL && old) {
+		block = (struct block *)((char *)old - sizeof(struct block));
+		memcpy(ptr, old, block->size > ns ? ns : block->size);
+		kfree(old);
+	}
+	return (ptr);
 }
 
 /*
