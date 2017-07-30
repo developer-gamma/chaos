@@ -15,6 +15,10 @@
 /*
 ** Kernel memory allocator.
 ** This is NOT suitable for user-space memory allocation.
+**
+** This is a pretty naive and straightforward implementation.
+** It can definitely be improved, but i didn't want to waste
+** time doing it. Feel free to improve it :)
 */
 
 /* Malloc's data structures */
