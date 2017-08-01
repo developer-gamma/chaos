@@ -97,7 +97,7 @@ mmap(virt_addr_t va, size_t size)
 }
 
 /*
-** Set the new end of kernel heap.
+** Sets the new end of kernel heap.
 ** TODO Make this function safer (overflow)
 */
 status_t
@@ -130,6 +130,10 @@ kbrk(virt_addr_t new_brk)
 	return (ERR_INVALID_ARGS);
 }
 
+/*
+** Increments or decrement the kernel heap of 'inc' bytes.
+** TODO Make this function safer (overflow)
+*/
 virt_addr_t
 ksbrk(intptr inc)
 {
@@ -145,7 +149,7 @@ ksbrk(intptr inc)
 /*
 ** Initialises the arch-dependent stuff of virtual memory management.
 **
-** Weak symbol, should be re-implemented for each supported architecture.
+** Weak symbol, could be re-implemented for each supported architecture.
 */
 __weak void
 arch_vmm_init(void)

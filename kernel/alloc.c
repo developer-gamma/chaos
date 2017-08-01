@@ -101,6 +101,7 @@ join_block(struct block *block)
 
 /*
 ** malloc(), but using memory in kernel space.
+** TODO Make this function safer (overflow)
 */
 virt_addr_t
 kalloc(size_t size)
@@ -135,6 +136,7 @@ kalloc(size_t size)
 
 /*
 ** free(), but using memory in kernel space.
+** TODO Make this function safer (overflow)
 */
 void
 kfree(virt_addr_t ptr)
@@ -155,6 +157,7 @@ kfree(virt_addr_t ptr)
 
 /*
 ** realloc(), but using memory in kernel space.
+** TODO Make this function safer (overflow)
 */
 virt_addr_t
 krealloc(virt_addr_t old, size_t ns)
@@ -173,6 +176,7 @@ krealloc(virt_addr_t old, size_t ns)
 
 /*
 ** calloc(), but using memory in kernel space.
+** TODO Make this function safer (overflow)
 */
 virt_addr_t
 kcalloc(size_t a, size_t b)
