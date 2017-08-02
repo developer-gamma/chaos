@@ -152,10 +152,12 @@ ksbrk(intptr inc)
 
 /*
 ** Sets the new end of user heap.
+** Marked as naked: doesn't lock the virtual address space.
+**
 ** TODO Make this function safer (overflow, bounds)
 */
-status_t
-ubrk(virt_addr_t new_brk)
+static status_t
+ubrk_naked(virt_addr_t new_brk)
 {
 	virt_addr_t brk;
 	intptr add;
@@ -185,6 +187,19 @@ ubrk(virt_addr_t new_brk)
 	return (ERR_INVALID_ARGS);
 }
 
+status_t
+ubrk(virt_addr_t new_brk)
+{
+	status_t ret;
+	struct vaspace *vaspace;
+
+	vaspace = get_current_thread()->vaspace;
+	acquire_lock(&vaspace->lock);
+	ret = ubrk_naked(new_brk);
+	release_lock(&vaspace->lock);
+	return (ret);
+}
+
 /*
 ** Increments or decrement the user heap of 'inc' bytes.
 ** TODO Make this function safer (overflow, bounds)
@@ -196,10 +211,13 @@ usbrk(intptr inc)
 	struct vaspace *vaspace;
 
 	vaspace = get_current_thread()->vaspace;
+	acquire_lock(&vaspace->lock);
 	old_brk = vaspace->heap_start + vaspace->heap_size;
-	if (kbrk(vaspace->heap_start + vaspace->heap_size + inc) == OK) {
+	if (ubrk_naked(vaspace->heap_start + vaspace->heap_size + inc) == OK) {
+		release_lock(&vaspace->lock);
 		return (old_brk);
 	}
+	release_lock(&vaspace->lock);
 	return ((virt_addr_t)-1u);
 }
 
