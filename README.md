@@ -42,7 +42,7 @@ If you want to run ChaOS through QEMU even if it's boring & useless right now, r
 make run
 ```
 
-# TODO list
+# Roadmap
 
 These are all the features that i'd like to implement by the end of 2017's summer vacations. I probably won't have the time to implement everything, but eh, challenge accepted! :D
 
