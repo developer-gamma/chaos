@@ -11,6 +11,7 @@
 # define _KERNEL_VMM_H_
 
 # include <kernel/pmm.h>
+# include <kernel/spinlock.h>
 # include <arch/vaspace.h>
 # include <chaosdef.h>
 # include <chaoserr.h>
@@ -36,7 +37,8 @@ struct vaspace
 	/* heap segment (goes upward) */
 	uintptr heap_pos;
 	size_t heap_size;
-	uintptr heap_start;
+	void *heap_start;
+	struct spinlock heap_lock;
 
 	uintptr binary_limit; /* Binary goes from 0x0 to this */
 

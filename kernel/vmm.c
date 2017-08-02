@@ -18,6 +18,7 @@
 #include <kernel/init.h>
 #include <kernel/unit-tests.h>
 #include <kernel/vmm.h>
+#include <kernel/thread.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -98,7 +99,7 @@ mmap(virt_addr_t va, size_t size)
 
 /*
 ** Sets the new end of kernel heap.
-** TODO Make this function safer (overflow)
+** TODO Make this function safer (overflow, bounds)
 */
 status_t
 kbrk(virt_addr_t new_brk)
@@ -121,8 +122,7 @@ kbrk(virt_addr_t new_brk)
 				return (ERR_NO_MEMORY);
 			}
 		}
-		else if (round_add < 0)
-		{
+		else if (round_add < 0) {
 			munmap(brk + round_add + PAGE_SIZE, -round_add);
 		}
 		return (OK);
@@ -132,7 +132,7 @@ kbrk(virt_addr_t new_brk)
 
 /*
 ** Increments or decrement the kernel heap of 'inc' bytes.
-** TODO Make this function safer (overflow)
+** TODO Make this function safer (overflow, bounds)
 */
 virt_addr_t
 ksbrk(intptr inc)
@@ -141,6 +141,59 @@ ksbrk(intptr inc)
 
 	old_brk = kernel_heap_start + kernel_heap_size;
 	if (kbrk(kernel_heap_start + kernel_heap_size + inc) == OK) {
+		return (old_brk);
+	}
+	return ((virt_addr_t)-1u);
+}
+
+/*
+** Sets the new end of user heap.
+** TODO Make this function safer (overflow, bounds)
+*/
+status_t
+ubrk(virt_addr_t new_brk)
+{
+	virt_addr_t brk;
+	intptr add;
+	intptr round_add;
+	struct vaspace *vaspace;
+
+	vaspace = get_current_thread()->vaspace;
+	if (new_brk >= vaspace->heap_start)
+	{
+		add = new_brk - (vaspace->heap_start + vaspace->heap_size);
+		new_brk = (virt_addr_t)ROUND_DOWN((uintptr)new_brk, PAGE_SIZE);
+		brk = (virt_addr_t)(ROUND_DOWN((uintptr)(vaspace->heap_start + vaspace->heap_size), PAGE_SIZE));
+		round_add = new_brk - brk;
+		vaspace->heap_size += add;
+		if (round_add > 0)
+		{
+			if (unlikely(mmap(brk + PAGE_SIZE, round_add) == NULL)) {
+				vaspace->heap_size -= add;
+				return (ERR_NO_MEMORY);
+			}
+		}
+		else if (round_add < 0) {
+			munmap(brk + round_add + PAGE_SIZE, -round_add);
+		}
+		return (OK);
+	}
+	return (ERR_INVALID_ARGS);
+}
+
+/*
+** Increments or decrement the user heap of 'inc' bytes.
+** TODO Make this function safer (overflow, bounds)
+*/
+virt_addr_t
+usbrk(intptr inc)
+{
+	void *old_brk;
+	struct vaspace *vaspace;
+
+	vaspace = get_current_thread()->vaspace;
+	old_brk = vaspace->heap_start + vaspace->heap_size;
+	if (kbrk(vaspace->heap_start + vaspace->heap_size + inc) == OK) {
 		return (old_brk);
 	}
 	return ((virt_addr_t)-1u);
