@@ -8,6 +8,7 @@
 \* ------------------------------------------------------------------------ */
 
 #include <kernel/thread.h>
+#include <kernel/alloc.h>
 #include <lib/interrupts.h>
 #include <stdio.h>
 
@@ -19,7 +20,8 @@
 void
 idle_routine(void)
 {
-	uintmax i;
+	size_t i;
+	void *ptr;
 
 	while (42) {
 		i = 0;
@@ -29,8 +31,22 @@ idle_routine(void)
 		** so please stop yelling everywhere. Thanks.
 		** FIXME
 		*/
-		while(++i < 1000000)
+
+		// Test allocations and interrupts
+		while(++i < 500000) {
 			assert(are_int_enabled());
+		}
+		disable_interrupts();
+		ptr = kalloc(i / 100);
+		enable_interrupts();
+		while(++i < 1000000) {
+			assert(are_int_enabled());
+		}
+		disable_interrupts();
+		kfree(ptr);
+		enable_interrupts();
+
+		// Dump threads
 		thread_dump();
 	}
 }

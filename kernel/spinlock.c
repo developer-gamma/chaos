@@ -26,11 +26,12 @@ holding_lock(struct spinlock *lock)
 void
 acquire_lock(struct spinlock *lock)
 {
-	while (atomic_exchange(&lock->locked, 1) == 1);
+	while (atomic_exchange(&lock->locked, 1) == 0);
 }
 
 void
 release_lock(struct spinlock *lock)
 {
+	assert(likely(lock->locked));
 	atomic_exchange(&lock->locked, 0);
 }

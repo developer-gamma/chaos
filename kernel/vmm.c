@@ -19,6 +19,7 @@
 #include <kernel/unit-tests.h>
 #include <kernel/vmm.h>
 #include <kernel/thread.h>
+#include <lib/interrupts.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -99,6 +100,8 @@ mmap(virt_addr_t va, size_t size)
 
 /*
 ** Sets the new end of kernel heap.
+** Interrupts must be disable in order to call this function.
+**
 ** TODO Make this function safer (overflow, bounds)
 */
 status_t
@@ -108,6 +111,7 @@ kbrk(virt_addr_t new_brk)
 	intptr add;
 	intptr round_add;
 
+	assert(!are_int_enabled());
 	if (new_brk >= kernel_heap_start)
 	{
 		add = new_brk - (kernel_heap_start + kernel_heap_size);

@@ -38,12 +38,14 @@ struct vaspace
 	uintptr heap_pos;
 	size_t heap_size;
 	void *heap_start;
-	struct spinlock heap_lock;
 
 	uintptr binary_limit; /* Binary goes from 0x0 to this */
 
 	/* 0x00000000 */
 	struct arch_vaspace arch;
+
+	/* Locker to lock the virtual address space */
+	struct spinlock lock;
 };
 
 status_t		map_virt_to_phys();

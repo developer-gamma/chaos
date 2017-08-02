@@ -11,6 +11,7 @@
 #include <kernel/thread.h>
 #include <kernel/options.h>
 #include <kernel/multiboot.h>
+#include <kernel/alloc.h>
 #include <lib/interrupts.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,11 +26,25 @@ static void init(void)
 {
 	size_t i;
 	struct thread *t;
+	void *ptr;
 
 	i = 500000;
 	while (42) {
-		while(++i < 1000000)
+		// Test allocations and interrupts
+		while(++i < 500000) {
 			assert(are_int_enabled());
+		}
+		disable_interrupts();
+		ptr = kalloc(i / 100);
+		enable_interrupts();
+		while(++i < 1000000) {
+			assert(are_int_enabled());
+		}
+		disable_interrupts();
+		kfree(ptr);
+		enable_interrupts();
+
+		// Dump threads
 		t = thread_create("dumper", &dumper, DEFAULT_STACK_SIZE);
 		assert_neq(t, NULL);
 		thread_resume(t);
