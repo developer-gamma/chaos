@@ -42,6 +42,37 @@ If you want to run ChaOS through QEMU even if it's boring & useless right now, r
 make run
 ```
 
+# TODO list
+
+These are all the features that i'd like to implement by the end of 2017's summer vacations. I probably won't have the time to implement everything, but eh, challenge accepted! :D
+
+- [X] Kernel architecture
+- [X] High-address Kernel
+- [X] Boot
+  - [X] Multiboot
+  - [X] Paging setup
+  - [X] GDT setup
+  - [X] IDT setup
+- [ ] Pc drivers
+  - [X] VGA
+  - [X] Serial
+  - [ ] Date / time
+- [ ] Memory
+  - [X] PMM
+  - [X] VMM
+  - [X] Kernel heap
+  - [ ] User heap
+  - [ ] User stacks / mmap
+- [ ] Multi process / threads
+  - [X] Scheduling
+  - [X] Kernel threads
+  - [ ] User processes (fork() and exit())
+- [ ] Syscalls
+- [ ] Userspace (ring3)
+- [ ] Filesystem (`open()`, `read()`, `write()`, `close()`, `unlink`, `opendir()`, `readdir()`, `closedir()`, `pipe()`, `dup()`, `dup2()`)
+- [ ] ELF loading
+- [ ] User space programs (init, shell, basic binaries such as `echo`, `ls`, `rm` etc.)
+ 
 # :rocket: Wanna participate?
 
 Fork me!
