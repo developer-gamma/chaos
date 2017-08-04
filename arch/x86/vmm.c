@@ -7,6 +7,7 @@
 **
 \* ------------------------------------------------------------------------ */
 
+#include <kernel/thread.h>
 #include <arch/x86/asm.h>
 #include <arch/x86/vmm.h>
 #include <stdio.h>
@@ -187,6 +188,8 @@ void
 vmm_test(void)
 {
 	virt_addr_t brk;
+	virt_addr_t mmap1;
+	virt_addr_t mmap2;
 
 	assert(!is_allocated((virt_addr_t)0xDEADB000));
 	assert_eq(map_page((virt_addr_t)0xDEADB000), OK);
@@ -284,6 +287,18 @@ vmm_test(void)
 	assert_eq(ksbrk(-100000), (virt_addr_t)-1u);
 
 	/* NULL mmap tests */
-	/* TODO */
+	mmap1 = mmap(NULL, PAGE_SIZE);
+	assert_neq(mmap1, NULL);
+	assert(is_allocated(mmap1));
+	assert(IS_PAGE_ALIGNED(mmap1));
+	mmap2 = mmap(NULL, 10 * PAGE_SIZE);
+	assert_neq(mmap2, NULL);
+	assert(is_allocated(mmap1));
+	assert(is_allocated(mmap2));
+	assert(is_allocated(mmap2 + 9 * PAGE_SIZE));
+	assert(is_allocated(mmap2 + 10 * PAGE_SIZE));
+	assert_eq(get_current_thread()->vaspace->mmapping_size, 11 * PAGE_SIZE);
+	munmap(mmap1, 11 * PAGE_SIZE);
+	get_current_thread()->vaspace->mmapping_size = 0;
 }
 

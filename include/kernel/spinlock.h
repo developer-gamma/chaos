@@ -15,6 +15,7 @@
 struct spinlock
 {
 	uint locked;
+	uint depth;
 };
 
 void			init_lock(struct spinlock *);

@@ -86,7 +86,7 @@ mmap(virt_addr_t va, size_t size)
 	if (va == NULL) /* Allocate on the memory mapping segment */
 	{
 		vaspace = get_current_thread()->vaspace;
-		ori_va = mmap((char *)vaspace->mmapping_start + vaspace->mmapping_size, size);
+		ori_va = mmap((char *)vaspace->mmapping_start - vaspace->mmapping_size - size, size);
 		if (ori_va != NULL) {
 			vaspace->mmapping_size += size;
 		}

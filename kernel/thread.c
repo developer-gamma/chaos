@@ -206,6 +206,7 @@ thread_init(void)
 	init_lock(&default_vaspace.lock);
 
 	default_vaspace.mmapping_start = (char *)ALIGN((uintptr)KERNEL_VIRTUAL_BASE, PAGE_SIZE) - PAGE_SIZE;
+
 	default_vaspace.binary_limit = ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE);
 
 	default_vaspace.heap_start = (char *)default_vaspace.binary_limit + PAGE_SIZE;

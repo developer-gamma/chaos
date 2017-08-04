@@ -16,18 +16,19 @@ void
 init_lock(struct spinlock *lock)
 {
 	lock->locked = 0;
+	lock->depth = 0;
 }
 
 bool
 holding_lock(struct spinlock *lock)
 {
-	return (lock->locked);
+	return (lock->locked && lock->depth);
 }
 
 void
 acquire_lock(struct spinlock *lock)
 {
-	assert(!holding_lock(lock));
+	lock->depth++;
 	while (atomic_exchange(&lock->locked, 1) == 0);
 }
 
@@ -35,5 +36,7 @@ void
 release_lock(struct spinlock *lock)
 {
 	assert(holding_lock(lock));
-	atomic_exchange(&lock->locked, 0);
+	lock->depth--;
+	if (lock->depth == 0)
+		atomic_exchange(&lock->locked, 0);
 }
