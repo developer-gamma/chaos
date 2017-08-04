@@ -109,7 +109,19 @@ extern struct vaspace default_vaspace;
 void
 arch_vmm_init(void)
 {
+	size_t i;
+	status_t s;
+
+	i = GET_PD_IDX(KERNEL_VIRTUAL_BASE);
 	default_vaspace.arch.pagedir = get_cr3();
+
+	/* Allocates all kernel page tables, so that each future processes share kernel memory. */
+	while (i < 1023)
+	{
+		s = map_page(GET_PAGE_TABLE(i));
+		assert(s == OK || s == ERR_ALREADY_MAPPED);
+		++i;
+	}
 }
 
 /* Unit tests functions */
