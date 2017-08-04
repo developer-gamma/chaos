@@ -37,7 +37,6 @@ panic(const char *fmt, ...)
 
 	printf("\n");
 
-#pragma GCC diagnostic push
 	/* __builtin_return_address(x) needs x to be known compile time */
 	do
 	{
@@ -53,7 +52,7 @@ panic(const char *fmt, ...)
 		PRINT_STACK_FRAME(9);
 	}
 	while (0);
-#pragma GCC diagnostic pop
+
 	for (;;)
 		;
 }
