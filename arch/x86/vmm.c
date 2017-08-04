@@ -282,5 +282,7 @@ vmm_test(void)
 	assert_eq(kbrk(NULL), ERR_INVALID_ARGS);
 	assert_eq(ksbrk(0), brk);
 	assert_eq(ksbrk(-100000), (virt_addr_t)-1u);
+
+	/* NULL mmap tests */
 }
 

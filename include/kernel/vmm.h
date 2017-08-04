@@ -30,12 +30,10 @@ struct vaspace
 	/* 0xCFFFFFFF */
 
 	/* Memory Mapping segment (stacks, dynamic libraries etc.) (goes downward) */
-	uintptr mmapping_start;
+	void *mmapping_start;
 	size_t mmapping_size;
-	uintptr mmapping_pos;
 
 	/* heap segment (goes upward) */
-	uintptr heap_pos;
 	size_t heap_size;
 	void *heap_start;
 
@@ -54,5 +52,10 @@ virt_addr_t		mmap(virt_addr_t va, size_t size);
 void			munmap(virt_addr_t va, size_t size);
 status_t		kbrk(virt_addr_t new_brk);
 virt_addr_t		ksbrk(intptr);
+status_t		ubrk(virt_addr_t new_brk);
+virt_addr_t		usbrk(intptr inc);
+
+# define LOCK_VASPACE(state)	LOCK(&get_current_thread()->vaspace->lock, state)
+# define RELEASE_VASPACE(state)	RELEASE(&get_current_thread()->vaspace->lock, state)
 
 #endif /* !_KERNEL_VMM_H_ */

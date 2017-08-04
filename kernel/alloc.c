@@ -29,6 +29,9 @@ struct alloc_datas alloc_datas =
 	.tail = NULL,
 };
 
+static struct spinlock kernel_heap_lock;
+
+
 /*
 ** Looks for a free block that can contain at least the given size.
 */
@@ -108,18 +111,18 @@ kalloc(size_t size)
 {
 	struct block *block;
 
-	assert(sizeof(struct block) % sizeof(void *) == 0);
+	LOCK_KHEAP(state);
 	size += (size == 0);
 	size = ALIGN(size, sizeof(void *));
 	block = get_free_block(size);
 	if (block) {
 		block->used = true;
 		split_block(block, size);
-		return ((void *)((char *)block + sizeof(struct block)));
+		goto ret_ok;
 	}
 	block = ksbrk(sizeof(struct block) + size);
 	if (unlikely(block == (void *)-1u)) {
-		return (NULL);
+		goto ret_err;
 	}
 	block->used = true;
 	block->size = size;
@@ -131,7 +134,16 @@ kalloc(size_t size)
 	if (block->prev) {
 		join_block(block->prev);
 	}
+
+ret_ok:
+	RELEASE_KHEAP(state);
 	return ((void *)((char *)block + sizeof(struct block)));
+
+ret_err:
+	RELEASE_KHEAP(state);
+	return (NULL);
+
+
 }
 
 /*
@@ -145,6 +157,7 @@ kfree(virt_addr_t ptr)
 
 	if (ptr)
 	{
+		LOCK_KHEAP(state);
 		block = (struct block *)((char *)ptr - sizeof(struct block));
 		assert(block->used);
 		block->used = false;
@@ -152,6 +165,7 @@ kfree(virt_addr_t ptr)
 		if (block->prev) {
 			join_block(block->prev);
 		}
+		RELEASE_KHEAP(state);
 	}
 }
 
@@ -193,6 +207,7 @@ kcalloc(size_t a, size_t b)
 static void
 init_kmalloc(enum init_level il __unused)
 {
+	init_lock(&kernel_heap_lock);
 	printf("[OK]\tKernel Heap\n");
 }
 

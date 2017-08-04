@@ -38,6 +38,8 @@ CFLAGS		+= \
 			-Wextra \
 			-std=gnu11 \
 			-O2 \
+			-Wno-frame-address \
+			-Wno-unknown-warning-option \
 			-isystem include \
 			-isystem include/lib/libc \
 			-isystem include/arch/$(ARCH)/

@@ -11,6 +11,7 @@ global start:function
 global stack_a
 global stack_b
 global stack_c
+global ret_kernel_main
 
 extern gdtptr_phys
 extern gdtptr
@@ -107,6 +108,7 @@ start:
 	call idt_setup			; setup the Interrupt Descriptor Table
 
 	call kernel_main
+ret_kernel_main:
 
 	hlt				; And catch fire
 	jmp $

@@ -19,7 +19,7 @@ static pid_t next_pid = 1;
 
 /* Thread table */
 struct thread thread_table[MAX_PID];
-struct thread *idle_thread = thread_table;
+struct thread *init_thread = thread_table + 1;
 struct spinlock thread_table_lock;
 
 /* Default virtual address space for the boot thread */
@@ -71,7 +71,7 @@ find_pid:
 	}
 	if (!pass)
 	{
-		pid = 0;
+		pid = 1;
 		limit = next_pid;
 		pass = true;
 		goto find_pid;
@@ -102,10 +102,11 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 	struct thread *t;
 	pid_t pid;
 
-	acquire_lock(&thread_table_lock);
+	LOCK_THREAD(state)
 
 	pid = find_next_pid();
 	if (unlikely(pid == -1)) {
+		RELEASE_THREAD(state);
 		return (NULL);
 	}
 
@@ -122,7 +123,8 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 	t->stack = stacks[pid - 1]; /* Quick hack, will be removed later */
 
 	arch_init_thread(t);
-	release_lock(&thread_table_lock);
+
+	RELEASE_THREAD(state);
 	return (t);
 }
 
@@ -135,10 +137,10 @@ thread_exit(void)
 	struct thread *t;
 
 	t = get_current_thread();
-	assert_eq(t->state, RUNNING);
 
-	disable_interrupts();
-	acquire_lock(&thread_table_lock);
+	LOCK_THREAD(state);
+
+	assert_eq(t->state, RUNNING);
 
 	t->state = NONE; /* TODO change this in ZOMBIE */
 	next_pid = t->pid;
@@ -153,39 +155,34 @@ thread_exit(void)
 void
 thread_resume(struct thread *t)
 {
-	assert_neq(t->state, ZOMBIE);
 
+	LOCK_THREAD(state);
+	assert_neq(t->state, ZOMBIE);
 	if (t->state == SUSPENDED) {
-		acquire_lock(&thread_table_lock);
 		t->state = RUNNABLE;
-		release_lock(&thread_table_lock);
+		RELEASE_THREAD(state);
 		thread_yield();
 	}
+	else
+		RELEASE_THREAD(state);
 }
 
 /*
-** Mark the current thread as the idle thread.
+** Mark the current thread as the init thread.
 */
 void
-thread_become_idle(void)
+thread_become_init(void)
 {
 	assert(!are_int_enabled());
 
-	acquire_lock(&thread_table_lock);
-
-	/* Set the thread name to 'idle' */
-	thread_set_name(get_current_thread(), "idle");
+	/* Set the thread name to 'init' */
+	thread_set_name(get_current_thread(), "init");
 
 	/* Enable interrupts */
 	enable_interrupts();
 
-	release_lock(&thread_table_lock);
-
-	/* Yield the cpu to an other thread */
-	thread_yield();
-
-	/* Do the idle routine */
-	idle_routine();
+	/* Do the init routine */
+	init_routine();
 }
 
 /*
@@ -197,11 +194,24 @@ thread_init(void)
 {
 	struct thread *t;
 
-	t = idle_thread;
+	t = init_thread;
 	memset(thread_table, 0, sizeof(thread_table));
 	thread_set_name(t, "boot");
+	t->pid = 1;
 	t->state = RUNNING;
 	t->vaspace = &default_vaspace;
+
+	/* Set-up default virtual space */
+	memset(&default_vaspace, 0, sizeof(default_vaspace));
+	init_lock(&default_vaspace.lock);
+
+	default_vaspace.mmapping_start = (char *)ALIGN((uintptr)KERNEL_VIRTUAL_BASE, PAGE_SIZE) - PAGE_SIZE;
+	default_vaspace.binary_limit = ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE);
+
+	default_vaspace.heap_start = (char *)default_vaspace.binary_limit + PAGE_SIZE;
+
+	default_vaspace.binary_limit = ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE);
+
 	set_current_thread(t);
 	register_int_handler(IRQ_TIMER_VECTOR, &irq_timer_handler);
 }
@@ -214,7 +224,7 @@ thread_dump(void)
 {
 	struct thread *t;
 
-	t = thread_table;
+	t = init_thread;
 	printf("\n");
 	while (t < thread_table + MAX_PID)
 	{

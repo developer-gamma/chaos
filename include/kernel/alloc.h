@@ -11,6 +11,8 @@
 # define _KERNEL_ALLOC_H_
 
 # include <kernel/vmm.h>
+# include <kernel/spinlock.h>
+# include <lib/interrupts.h>
 # include <chaosdef.h>
 
 struct block
@@ -32,5 +34,8 @@ virt_addr_t	kcalloc(size_t, size_t);
 void		kfree(virt_addr_t);
 
 static_assert(sizeof(struct block) % sizeof(void *) == 0);
+
+# define LOCK_KHEAP(state)	LOCK(&kernel_heap_lock, state)
+# define RELEASE_KHEAP(state)	RELEASE(&kernel_heap_lock, state)
 
 #endif /* !_KERNEL_ALLOC_H_ */

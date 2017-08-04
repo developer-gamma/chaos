@@ -15,6 +15,8 @@
 
 # define MAX_IRQ			16
 
+typedef uintptr		int_state_t;
+
 enum			handler_return
 {
 	IRQ_NO_RESCHEDULE,
@@ -27,8 +29,8 @@ typedef status_t	(*mask_interrupt_cb)(uint vector);
 typedef status_t	(*unmask_interrupt_cb)(uint vector);
 typedef void		(*enable_interrupts_cb)(void);
 typedef void		(*disable_interrupts_cb)(void);
-typedef void		(*push_interrupts_cb)(uintptr *save);
-typedef void		(*pop_interrupts_cb)(uintptr save);
+typedef void		(*push_interrupts_cb)(int_state_t *);
+typedef void		(*pop_interrupts_cb)(int_state_t *);
 typedef bool		(*are_int_enabled_cb)(void);
 
 struct			interrupts_callbacks
@@ -50,8 +52,8 @@ status_t		register_int_handler(uint vector, int_handler handler);
 status_t		unregister_int_handler(uint vector);
 enum handler_return	handle_interrupt(uint vector);
 void			register_interrupt_callbacks(struct interrupts_callbacks *);
-void			push_interrupts(uintptr *save);
-void			pop_interrupts(uintptr save);
+void			push_interrupts(int_state_t *);
+void			pop_interrupts(int_state_t *);
 bool			are_int_enabled(void);
 
 #endif /* !_LIB_INTERRUPTS_H_ */

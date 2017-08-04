@@ -55,19 +55,22 @@ struct			thread
 
 struct thread		*thread_create(char const *name, thread_entry_cb entry, size_t stack_size);
 void			thread_init(void);
-void			thread_become_idle(void);
+void			thread_become_init(void);
 void			thread_dump(void);
 void			thread_yield(void);
 void			thread_reschedule(void);
 void			thread_resume(struct thread *);
 void			thread_exit(void);
 enum handler_return	irq_timer_handler(void);
-void			idle_routine(void);
+void			init_routine(void);
 
 /* Must be implemented in each architecture */
 void			set_current_thread(struct thread *);
 struct thread		*get_current_thread(void);
 void			arch_context_switch(struct thread *old, struct thread *new);
 void			arch_init_thread(struct thread *);
+
+# define LOCK_THREAD(state)	LOCK(&thread_table_lock, state)
+# define RELEASE_THREAD(state)	RELEASE(&thread_table_lock, state)
 
 #endif /* !_KERNEL_THREAD_H_ */

@@ -9,6 +9,7 @@
 
 #include <kernel/spinlock.h>
 #include <arch/common_op.h>
+#include <lib/interrupts.h>
 #include <stdio.h>
 
 void
@@ -26,12 +27,13 @@ holding_lock(struct spinlock *lock)
 void
 acquire_lock(struct spinlock *lock)
 {
+	assert(!holding_lock(lock));
 	while (atomic_exchange(&lock->locked, 1) == 0);
 }
 
 void
 release_lock(struct spinlock *lock)
 {
-	assert(likely(lock->locked));
+	assert(holding_lock(lock));
 	atomic_exchange(&lock->locked, 0);
 }

@@ -75,13 +75,22 @@ __weak virt_addr_t
 mmap(virt_addr_t va, size_t size)
 {
 	virt_addr_t ori_va;
+	struct vaspace *vaspace;
 
 	assert(IS_PAGE_ALIGNED(va));
 	assert(IS_PAGE_ALIGNED(size));
+
+	LOCK_VASPACE(state);
+
 	ori_va = va;
 	if (va == NULL) /* Allocate on the memory mapping segment */
 	{
-		panic("NULL mmap() not implemented (yet)!");
+		vaspace = get_current_thread()->vaspace;
+		ori_va = mmap((char *)vaspace->mmapping_start + vaspace->mmapping_size, size);
+		if (ori_va != NULL) {
+			vaspace->mmapping_size += size;
+		}
+		goto ok_ret;
 	}
 	else
 	{
@@ -89,12 +98,19 @@ mmap(virt_addr_t va, size_t size)
 		{
 			if (unlikely(map_page(va) != OK)) {
 				munmap(ori_va, va - ori_va);
-				return (NULL);
+				goto err_ret;
 			}
 			va += PAGE_SIZE;
 		}
-		return (ori_va);
+		goto ok_ret;
 	}
+
+ok_ret:
+	RELEASE_VASPACE(state);
+	return (ori_va);
+
+err_ret:
+	RELEASE_VASPACE(state);
 	return (NULL);
 }
 
@@ -136,6 +152,8 @@ kbrk(virt_addr_t new_brk)
 
 /*
 ** Increments or decrement the kernel heap of 'inc' bytes.
+** Interrupts must be disable in order to call this function.
+**
 ** TODO Make this function safer (overflow, bounds)
 */
 virt_addr_t
@@ -187,16 +205,19 @@ ubrk_naked(virt_addr_t new_brk)
 	return (ERR_INVALID_ARGS);
 }
 
+/*
+** Sets the new end of user heap.
+**
+** TODO Make this function safer (overflow, bounds)
+*/
 status_t
 ubrk(virt_addr_t new_brk)
 {
 	status_t ret;
-	struct vaspace *vaspace;
 
-	vaspace = get_current_thread()->vaspace;
-	acquire_lock(&vaspace->lock);
+	LOCK_VASPACE(state);
 	ret = ubrk_naked(new_brk);
-	release_lock(&vaspace->lock);
+	RELEASE_VASPACE(state);
 	return (ret);
 }
 
@@ -211,13 +232,13 @@ usbrk(intptr inc)
 	struct vaspace *vaspace;
 
 	vaspace = get_current_thread()->vaspace;
-	acquire_lock(&vaspace->lock);
+	LOCK_VASPACE(state);
 	old_brk = vaspace->heap_start + vaspace->heap_size;
 	if (ubrk_naked(vaspace->heap_start + vaspace->heap_size + inc) == OK) {
-		release_lock(&vaspace->lock);
+		RELEASE_VASPACE(state);
 		return (old_brk);
 	}
-	release_lock(&vaspace->lock);
+	RELEASE_VASPACE(state);
 	return ((virt_addr_t)-1u);
 }
 
@@ -230,7 +251,7 @@ __weak void
 arch_vmm_init(void)
 {}
 
-/* Defined in kernel/thread.C */
+/* Defined in kernel/thread.c */
 extern struct vaspace default_vaspace;
 
 /*
@@ -244,12 +265,13 @@ vmm_init(enum init_level il __unused)
 	kernel_heap_start = (virt_addr_t)ALIGN((uintptr)KERNEL_VIRTUAL_END, 1024u * PAGE_SIZE);
 	kernel_heap_size = 0;
 
-	/* Set-up default virtual space for boot thread */
-	memset(&default_vaspace, 0, sizeof(default_vaspace));
 	arch_vmm_init();
 
 	/* Allocate the first heap page or the kbrk algorithm will not work. */
-	mmap(kernel_heap_start, PAGE_SIZE);
+	assert_neq(mmap(kernel_heap_start, PAGE_SIZE), NULL);
+
+	/* Allocate the first heap page of boot thread the ubrk algorithm will not work. */
+	assert_neq(mmap(default_vaspace.heap_start, PAGE_SIZE), NULL);
 
 	printf("[OK]\tVirtual Memory Management\n");
 }

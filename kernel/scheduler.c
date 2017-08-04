@@ -13,7 +13,7 @@
 #include <debug.h>
 
 extern struct thread thread_table[MAX_PID];
-extern struct thread *idle_thread;
+extern struct thread *init_thread;
 extern struct spinlock thread_table_lock;
 
 /*
@@ -44,7 +44,7 @@ look_for_next:
 		pass = true;
 		goto look_for_next;
 	}
-	return (idle_thread);
+	return (init_thread);
 }
 
 /*
@@ -82,22 +82,16 @@ void
 thread_yield(void)
 {
 	struct thread *t;
-	uintptr save;
 
 	t = get_current_thread();
+	LOCK_THREAD(state);
+
 	assert(t->state == RUNNING);
-
-	push_interrupts(&save);
-	disable_interrupts();
-
-	acquire_lock(&thread_table_lock);
 
 	t->state = RUNNABLE;
 	thread_reschedule();
 
-	release_lock(&thread_table_lock);
-
-	pop_interrupts(save);
+	RELEASE_THREAD(state);
 }
 
 enum handler_return

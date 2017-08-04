@@ -110,15 +110,15 @@ x86_disable_interrupts(void)
 }
 
 static void
-x86_push_interrupts(uintptr *save)
+x86_push_interrupts(int_state_t *save)
 {
 	*save = get_eflags();
 }
 
 static void
-x86_pop_interrupts(uintptr save)
+x86_pop_interrupts(int_state_t *save)
 {
-	set_eflags(save);
+	set_eflags(*save);
 }
 
 static bool

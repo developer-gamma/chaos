@@ -40,10 +40,10 @@ static void
 default_disable_interrupts(void) {}
 
 static void
-default_push_interrupts(uintptr *save __unused) {}
+default_push_interrupts(int_state_t *i __unused) {}
 
 static void
-default_pop_interrupts(uintptr save __unused) {}
+default_pop_interrupts(int_state_t *i __unused) {}
 
 /*
 ** Structure holding the current callbacks of this API
@@ -114,15 +114,15 @@ handle_interrupt(uint vector)
 }
 
 void
-push_interrupts(uintptr *save)
+push_interrupts(int_state_t *is)
 {
-	interrupts_callbacks.push_interrupts(save);
+	interrupts_callbacks.push_interrupts(is);
 }
 
 void
-pop_interrupts(uintptr save)
+pop_interrupts(int_state_t *is)
 {
-	interrupts_callbacks.pop_interrupts(save);
+	interrupts_callbacks.pop_interrupts(is);
 }
 
 bool
