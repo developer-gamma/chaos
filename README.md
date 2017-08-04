@@ -57,12 +57,12 @@ These are all the features that i'd like to implement by the end of 2017's summe
   - [X] VGA
   - [X] Serial
   - [ ] Date / time
-- [ ] Memory
+- [X] Memory
   - [X] PMM
   - [X] VMM
   - [X] Kernel heap
-  - [ ] User heap
-  - [ ] User stacks / mmap
+  - [X] User heap
+  - [X] User stacks / mmap
 - [ ] Multi process / threads
   - [X] Scheduling
   - [X] Kernel threads
@@ -72,7 +72,7 @@ These are all the features that i'd like to implement by the end of 2017's summe
 - [ ] Filesystem (`open()`, `read()`, `write()`, `close()`, `unlink`, `opendir()`, `readdir()`, `closedir()`, `pipe()`, `dup()`, `dup2()`)
 - [ ] ELF loading
 - [ ] User space programs (init, shell, basic binaries such as `echo`, `ls`, `rm` etc.)
- 
+
 # :rocket: Wanna participate?
 
 Fork me!
