@@ -15,8 +15,8 @@
 # include <chaosdef.h>
 
 /* Maximum number of threads */
-# define MAX_PID		(4u)
-# define DEFAULT_STACK_SIZE	(0x1000 * 16u)
+# define MAX_PID		(32u)
+# define DEFAULT_STACK_SIZE	(PAGE_SIZE * 16u)
 
 # define IRQ_TIMER_VECTOR	(0x0)
 

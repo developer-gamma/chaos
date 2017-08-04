@@ -298,7 +298,7 @@ vmm_test(void)
 	assert(is_allocated(mmap2 + 9 * PAGE_SIZE));
 	assert(is_allocated(mmap2 + 10 * PAGE_SIZE));
 	assert_eq(get_current_thread()->vaspace->mmapping_size, 11 * PAGE_SIZE);
-	munmap(mmap1, 11 * PAGE_SIZE);
+	munmap(mmap2, 11 * PAGE_SIZE);
 	get_current_thread()->vaspace->mmapping_size = 0;
 }
 

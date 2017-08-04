@@ -25,17 +25,6 @@ struct spinlock thread_table_lock;
 /* Default virtual address space for the boot thread */
 struct vaspace default_vaspace;
 
-extern void * stack_a;
-extern void * stack_b;
-extern void * stack_c;
-
-void *stacks[] =
-{
-	&stack_a,
-	&stack_b,
-	&stack_c,
-};
-
 /* String to print thread state */
 static char const *thread_state_str[] =
 {
@@ -119,8 +108,8 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 	t->state = SUSPENDED;
 	t->vaspace = get_current_thread()->vaspace;
 
-	/* TODO set thread stack */
-	t->stack = stacks[pid - 1]; /* Quick hack, will be removed later */
+	t->stack = mmap(NULL, stack_size);
+	assert_neq(t->stack, NULL);
 
 	arch_init_thread(t);
 

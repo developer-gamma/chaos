@@ -8,9 +8,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 global start:function
-global stack_a
-global stack_b
-global stack_c
 global ret_kernel_main
 
 extern gdtptr_phys
@@ -134,17 +131,3 @@ align 4096
 kernel_stack_bottom:
 	resb 4096 * 16			; Byte reserved for kernel stack (at boot-time)
 kernel_stack_top:
-
-; Used for debugging purposes, will be removed later
-
-stack_a:
-	resb 4096 * 16
-stack_a_top:
-
-stack_b:
-	resb 4096 * 16
-stack_b_top:
-
-stack_c:
-	resb 4096 * 16
-stack_c_top:
