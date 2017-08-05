@@ -29,7 +29,7 @@ void
 acquire_lock(struct spinlock *lock)
 {
 	lock->depth++;
-	while (atomic_exchange(&lock->locked, 1) == 0);
+	while (!atomic_exchange(&lock->locked, 1));
 }
 
 void
@@ -37,6 +37,6 @@ release_lock(struct spinlock *lock)
 {
 	assert(holding_lock(lock));
 	lock->depth--;
-	if (lock->depth == 0)
+	if (!lock->depth)
 		atomic_exchange(&lock->locked, 0);
 }

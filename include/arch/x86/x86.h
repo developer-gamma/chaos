@@ -12,10 +12,13 @@
 
 # include <chaosdef.h>
 
-/* These must match with gdt.asm and include/arch/x86/segments.h */
-#define		CODE_SELECTOR		(0x08)
-#define		KERNEL_DATA_SELECTOR	(0x10)
-#define		USER_DATA_SELECTOR	(0x18)
+/* These must match with gdt.asm and include/arch/x86/asm.mac */
+# define		NULL_SELECTOR		(0x00)
+# define		KERNEL_CODE_SELECTOR	(0x08)
+# define		KERNEL_DATA_SELECTOR	(0x10)
+# define		USER_CODE_SELECTOR	(0x18)
+# define		USER_DATA_SELECTOR	(0x20)
+# define 		TSS_SELECTOR		(0x28)
 
 /*
 ** This structure represents the registers and all other informations that

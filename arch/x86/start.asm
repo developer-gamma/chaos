@@ -13,6 +13,7 @@ global ret_kernel_main
 extern gdtptr_phys
 extern gdtptr
 extern idt_setup
+extern tss_setup
 extern kernel_main
 
 %include "include/arch/x86/asm.mac"
@@ -44,7 +45,7 @@ start:
 	mov ss, ax
 
 	; Do a far jump to update code selector
-	push dword CODE_SELECTOR
+	push dword KERNEL_CODE_SELECTOR
 	push dword PHYS(.far_jmp)
 	retf
 
@@ -87,6 +88,8 @@ start:
 
 .higher_half:
 	mov esp, kernel_stack_top	; reset kernel stack
+
+	call tss_setup			; setup the Task State Segment
 
 	lgdt [gdtptr]			; reload the gdt
 

@@ -142,7 +142,7 @@ x86_setup_default_idt(void)
 	i = 0;
 	while (i < X86_INT_MAX)
 	{
-		x86_idt_set_vector(i, (uintptr)&x86_unhandled_exception_handler, CODE_SELECTOR, DPL_RING_0, IDT_INTERRUPT_GATE_32);
+		x86_idt_set_vector(i, (uintptr)&x86_unhandled_exception_handler, KERNEL_CODE_SELECTOR, DPL_RING_0, IDT_INTERRUPT_GATE_32);
 		++i;
 	}
 }

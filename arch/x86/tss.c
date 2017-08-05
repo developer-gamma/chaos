@@ -7,12 +7,12 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#ifndef _PLATFORM_PC_KEYBOARD_H_
-# define _PLATFORM_PC_KEYBOARD_H_
+#include <arch/x86/tss.h>
 
-# include <chaosdef.h>
+struct tss tss;
 
-# define KEYBOARD_INT_HANDLER		0x01
-# define KEYBOARD_IO_PORT		0x60
+void
+tss_setup(void)
+{
 
-#endif /* !_PLATFORM_PC_KEYBOARD_H_ */
+}

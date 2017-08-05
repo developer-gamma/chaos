@@ -17,10 +17,13 @@
 %define PHYS(x)			((x) - KERNEL_VIRTUAL_BASE)
 %define VIRT(x)			((x) + KERNEL_VIRTUAL_BASE)
 
-; These must match with gdt.asm and include/arch/x86/segments.h
-%define CODE_SELECTOR		(0x08)
+; These must match with gdt.asm and include/arch/x86/asm.mac
+%define NULL_SELECTOR		(0x00)
+%define KERNEL_CODE_SELECTOR	(0x08)
 %define KERNEL_DATA_SELECTOR	(0x10)
-%define USER_DATA_SELECTOR	(0x18)
+%define USER_CODE_SELECTOR	(0x18)
+%define USER_DATA_SELECTOR	(0x20)
+%define TSS_SELECTOR		(0x20)
 
 ; Some constants to make some shit more verbose
 %define false 0

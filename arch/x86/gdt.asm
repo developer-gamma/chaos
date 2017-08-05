@@ -16,16 +16,14 @@ global gdtptr
 section .rodata
 align 16
 gdtptr_phys:
-	dw gdt_end - gdt_start - 1
+	dw gdt_without_tss_end - gdt_start - 1
 	dd PHYS(gdt)
-
 
 section .rodata
 align 16
 gdtptr:
 	dw gdt_end - gdt_start - 1
 	dd gdt
-
 
 section .data
 align 16
@@ -35,7 +33,7 @@ gdt_start:
 	dd 0
 	dd 0
 
-	; Code selector
+	; Kernel Code selector
 	dw 0xFFFF	; limit 15:0
 	dw 0x0000	; base 15:0
 	db 0x00		; base 23:16
@@ -51,11 +49,30 @@ gdt_start:
 	db 0b11001111	; G(1) S(1) (0) (0) limit 19:16
 	db 0x00		; base 31:24
 
+	; User Code selector
+	dw 0xFFFF	; limit 15:0
+	dw 0x0000	; base 15:0
+	db 0x00		; base 23:16
+	db 0b11111010	; P(1) DPL(11) (1) C(1) D(0) R(1) A(0)
+	db 0b11001111	; G(1) S(1) (0) (0) limit 19:16
+	db 0x00		; base 31:24
+
 	; User data selector
 	dw 0xFFFF	; limit 15:0
 	dw 0x0000	; base 15:0
 	db 0x00		; base 23:16
 	db 0b11000010	; P(1) DPL(11) (1) C(0) E(0) W(1) A(0)
+	db 0b11001111	; G(1) S(1) (0) (0) limit 19:16
+	db 0x00		; base 31:24
+
+gdt_without_tss_end:
+
+	; Tss entry
+gdt_tss_entry:
+	dw 0xFFFF	; limit 15:0
+	dw 0x0000	; base 15:0
+	db 0x00		; base 23:16
+	db 0b11000011	; P(1) DPL(11) (1) C(0) E(0) W(1) A(0)
 	db 0b11001111	; G(1) S(1) (0) (0) limit 19:16
 	db 0x00		; base 31:24
 

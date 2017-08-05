@@ -31,7 +31,7 @@ static size_t				next_frame;
 ** looking address, the one most likely to be free.
 ** The search is done in two steps, the first one from next_frame to NB_FRAMES, and
 ** the second one from 0 to next_frame. If after these two steps no
-** free frame have been found, then NULL_FRAME is returned. However, if one have been found,
+** free frame was found, then NULL_FRAME is returned. In the other case,
 ** it also sets next_frame to the index of the following address.
 */
 phys_addr_t
@@ -76,10 +76,10 @@ void
 free_frame(phys_addr_t frame)
 {
 	/* Ensure the address is page-aligned */
-	assert_eq(frame & PAGE_SIZE_MASK, 0);
+	assert(IS_PAGE_ALIGNED(frame));
 
 	/* Ensure the given physical address is taken */
-	assert_neq(frame_bitmap[GET_FRAME_IDX(frame)] & GET_FRAME_MASK(frame), 0);
+	assert(is_frame_allocated(frame));
 
 	/* Set the bit corresponding to this frame to 0 */
 	frame_bitmap[GET_FRAME_IDX(frame)] &= ~(GET_FRAME_MASK(frame));

@@ -11,25 +11,28 @@
 # define _CHAOS_DEBUG_H_
 
 # ifndef _CHAOS_DEF_H_
-#  error "You shouldn't include 'debug.h' directly, but include 'chaosdef.h' instead."
+#  error "You shouldn't include 'debug.h' directly. Include 'chaosdef.h' instead."
 # endif /* !_CHAOS_DEF_H_*/
 
 /*
 ** Blue-screen-like function.
-** Prints a message and halt (and catch fire).
+** Prints a message and halts (and catch fire).
 */
-void		panic(char const *fmt, ...) __noreturn;
+void				panic(char const *fmt, ...) __noreturn;
 
 # define static_assert(e)	extern char (*__static_assert(void)) [sizeof(char[1 - 2 * !(e)])]
 
 /*
-** The assert() macro will panic if the given expression results to false
+** The assert() macro will panic if the given expression is evaluated to false
 */
-# define			assert(expr)		\
-  if (!(expr)) {					\
-    panic("assert(%s) failed (in %s at line %u).\n",	\
-           #expr, __FILE__, __LINE__);			\
-  }
+# define			assert(expr)					\
+	do {									\
+		if (unlikely(!(expr))) {					\
+			panic("assert(%s) failed (in %s at line %u).\n",	\
+				#expr, __FILE__, __LINE__);			\
+		}								\
+	}									\
+	while (0)
 
 /*
 ** The assert_eq() macro will panic if the given operands ARE NOT equal.

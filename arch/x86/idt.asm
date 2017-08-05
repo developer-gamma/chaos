@@ -46,7 +46,7 @@ extern x86_setup_default_idt
 		push es
 		push fs
 		push gs
-		mov ax, CODE_SELECTOR
+		mov ax, KERNEL_CODE_SELECTOR
 		mov ds, ax
 		mov es, ax
 		mov fs, ax
@@ -156,7 +156,7 @@ idt_setup:
 	; Push common parameters
 	push dword 0xE			; Entry type (Interrupt Gate 32 bits)
 	push dword 0x0			; DPL (Ring 0)
-	push dword CODE_SELECTOR	; Code selector
+	push dword KERNEL_CODE_SELECTOR	; Code selector
 
 	; Add all the exceptions in the IDT
 	;
