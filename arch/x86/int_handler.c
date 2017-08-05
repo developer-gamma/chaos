@@ -101,7 +101,16 @@ x86_syscalls_handler(struct regs *regs)
 	switch (regs->eax)
 	{
 		case WRITE:
-			putsn((char const *)regs->esi, (size_t)regs->edx);
+			regs->eax = putsn((char const *)regs->esi, (size_t)regs->edx);
+			break;
+		case READ:
+			while (42);
+			break;
+		case BRK:
+			regs->eax = ubrk((void *)regs->edi);
+			break;
+		case SBRK:
+			regs->eax = (uintptr)usbrk((intptr)regs->edi);
 			break;
 		default:
 			panic("Unknown syscall %p\n", regs->eax);

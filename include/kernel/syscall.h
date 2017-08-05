@@ -14,7 +14,9 @@ enum syscalls_values
 {
 	UNKNOWN		= 0,
 	WRITE,
-	READ
+	READ,
+	BRK,
+	SBRK,
 };
 
 static char const *const syscalls_str[] =
@@ -22,6 +24,8 @@ static char const *const syscalls_str[] =
 	[UNKNOWN]	= "UNKNOWN",
 	[WRITE]		= "WRITE",
 	[READ]		= "READ",
+	[BRK]		= "BRK",
+	[SBRK]		= "SBRK",
 };
 
 #endif /* !_KERNEL_SYSCALL_H_ */

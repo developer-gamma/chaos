@@ -18,5 +18,7 @@
 */
 ssize_t		write(int fd, const void *buff, size_t count);
 ssize_t		read(int fd, void *buff, size_t count);
+int		brk(void *addr);
+void		*sbrk(intptr inc);
 
 #endif /* !_UNISTD_H_ */

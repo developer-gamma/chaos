@@ -7,9 +7,6 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-global write:function
-global read:function
-
 ;
 ; These are userspace functions to call each syscalls.
 ; One day they won't be part of the kernel any more and be in a library
@@ -23,6 +20,7 @@ global read:function
 ; 5) Restore edi and esi
 ;
 %macro SYSCALL 2
+global %2:function
 %2:
 	push edi
 	push esi
@@ -38,7 +36,10 @@ global read:function
 %endmacro
 
 ; Generates all the userspace syscall functions
+; Remeber that ID must be the same than the one defined in include/kernel/syscall.h
 ;
 ; MACRO			ID			NAME
 SYSCALL			0x1,			write
 SYSCALL			0x2,			read
+SYSCALL			0x3,			brk
+SYSCALL			0x4,			sbrk

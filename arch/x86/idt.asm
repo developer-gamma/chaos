@@ -201,6 +201,8 @@ idt_setup:
 	ADD_IDT_ENTRY		0x2E,		irq_E
 	ADD_IDT_ENTRY		0x2F,		irq_F
 
+	mov dword [esp + 0x8], 0xF		; Set the interrupt gate to Trap Interrupt 32 bits
+
 	; Add the syscall entry
 	ADD_IDT_ENTRY		0x80,		syscall
 
