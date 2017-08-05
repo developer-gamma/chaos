@@ -7,10 +7,9 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#include <kernel/thread.h>
-#include <kernel/alloc.h>
-#include <lib/interrupts.h>
-#include <stdio.h>
+#include <chaosdef.h>
+
+extern int (shell_main)(void);
 
 /*
 ** The first thread launched by the kernel when it has finish booting.
@@ -19,8 +18,13 @@
 void
 init_routine(void)
 {
-	while (42) {
-		assert(are_int_enabled());
-	}
+	/*
+	** The idea here is to call execve() and execute the init script, or something similar.
+	** As execve() isn't implemented yet, i'm directly calling the main of the shell program.
+	*/
+	shell_main();
+
+	/* Init should never finish. */
+	panic("init finished");
 }
 

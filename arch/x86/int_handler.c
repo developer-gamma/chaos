@@ -7,6 +7,7 @@
 **
 \* ------------------------------------------------------------------------ */
 
+#include <kernel/syscall.h>
 #include <kernel/thread.h>
 #include <arch/x86/interrupts.h>
 #include <lib/interrupts.h>
@@ -86,5 +87,21 @@ x86_irq_handler(struct regs * regs)
 
 	if (ret == IRQ_RESCHEDULE) {
 		thread_yield();
+	}
+}
+
+/*
+** Common handler for all syscalls
+*/
+void
+x86_syscalls_handler(struct regs *regs)
+{
+	switch (regs->eax)
+	{
+		case WRITE:
+			printf("%s", (void *)regs->esi);
+			break;
+		default:
+			panic("Unknown syscall %p\n", regs->eax);
 	}
 }

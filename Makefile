@@ -43,7 +43,7 @@ CFLAGS		+= \
 			-isystem include \
 			-isystem include/lib/libc \
 			-isystem include/arch/$(ARCH)/
-SRC_C		:= $(shell find "arch/$(ARCH)/" "platform/$(PLATFORM)" kernel lib -name *.c)
+SRC_C		:= $(shell find "arch/$(ARCH)/" "platform/$(PLATFORM)" kernel lib  userspace -name *.c)
 DEP		:= $(SRC_C:.c=.d)
 
 # Assembly

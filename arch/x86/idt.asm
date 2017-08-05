@@ -13,12 +13,15 @@ bits 32
 global idt
 global idt_setup
 extern x86_exception_handler
-extern x86_idt_set_vector
 extern x86_irq_handler
+extern x86_syscalls_handler
+extern x86_idt_set_vector
+extern x86_setup_default_idt
 
 %define NO_ERROR_CODE	0
 %define ERROR_CODE	1
 %define IRQ		2
+%define SYSCALL		3
 
 ; Generates an exception handler that saves the current registers,
 ; calls the exception handler and restores registers.
@@ -50,7 +53,9 @@ extern x86_irq_handler
 		mov gs, ax
 
 		push esp	; Push the stack frame on the stack
-%if %3 == 2
+%if %3 == 3
+		call x86_syscalls_handler
+%elif %3 == 2
 		call x86_irq_handler
 %else
 		call x86_exception_handler
@@ -76,7 +81,7 @@ extern x86_irq_handler
 	add esp, 8
 %endmacro
 
-; Generate all the exception handlers
+; Generates all the exception handlers
 ;
 ; MACRO				ID		NAME				ERROR_CODE
 NEW_EXCEPTION_HANDLER		0x0,		division_by_zero,		NO_ERROR_CODE
@@ -100,10 +105,11 @@ NEW_EXCEPTION_HANDLER		0x11,		alignment_check,		ERROR_CODE
 NEW_EXCEPTION_HANDLER		0x12,		machine_check,			NO_ERROR_CODE
 NEW_EXCEPTION_HANDLER		0x13,		simd_fd_exception,		NO_ERROR_CODE
 NEW_EXCEPTION_HANDLER		0x14,		virt_exception,			NO_ERROR_CODE
+NEW_EXCEPTION_HANDLER		0xFF,		unhandled_exception,		NO_ERROR_CODE
 
-; Generate all the IRQ handler
+; Generates all the IRQ handler
 ;
-; MACRO				ID		NAME				IRQ
+; macro				id		name				irq
 NEW_EXCEPTION_HANDLER		0x0,		irq_0,				IRQ
 NEW_EXCEPTION_HANDLER		0x1,		irq_1,				IRQ
 NEW_EXCEPTION_HANDLER		0x2,		irq_2,				IRQ
@@ -120,6 +126,11 @@ NEW_EXCEPTION_HANDLER		0xC,		irq_C,				IRQ
 NEW_EXCEPTION_HANDLER		0xD,		irq_D,				IRQ
 NEW_EXCEPTION_HANDLER		0xE,		irq_E,				IRQ
 NEW_EXCEPTION_HANDLER		0xF,		irq_F,				IRQ
+
+; Generates the syscall handler
+;
+; macro				id		name				syscall
+NEW_EXCEPTION_HANDLER		0x80,		syscall,			SYSCALL
 
 section .data
 align 16
@@ -139,8 +150,11 @@ idtptr:
 section .text
 ; Set-up the Interrupt Descriptor Table
 idt_setup:
+
+	call x86_setup_default_idt
+
 	; Push common parameters
-	push dword 0xE			; Entry type (Trap Gate 32 bits)
+	push dword 0xE			; Entry type (Interrupt Gate 32 bits)
 	push dword 0x0			; DPL (Ring 0)
 	push dword CODE_SELECTOR	; Code selector
 
@@ -186,6 +200,9 @@ idt_setup:
 	ADD_IDT_ENTRY		0x2D,		irq_D
 	ADD_IDT_ENTRY		0x2E,		irq_E
 	ADD_IDT_ENTRY		0x2F,		irq_F
+
+	; Add the syscall entry
+	ADD_IDT_ENTRY		0x80,		syscall
 
 	add esp, 12
 

@@ -15,6 +15,7 @@
 
 /* Defined in idt.asm */
 extern struct idt_entry idt[X86_INT_MAX];
+extern void (*x86_unhandled_exception_handler)(void);
 
 /*
 ** Set the present flag for the given idt entry
@@ -128,6 +129,22 @@ x86_are_int_enabled(void)
 
 	eflags = get_eflags();
 	return ((bool)(eflags & (1 << 9)));
+}
+
+/*
+** Sets up a default IDT
+*/
+void
+x86_setup_default_idt(void)
+{
+	size_t i;
+
+	i = 0;
+	while (i < X86_INT_MAX)
+	{
+		x86_idt_set_vector(i, (uintptr)&x86_unhandled_exception_handler, CODE_SELECTOR, DPL_RING_0, IDT_INTERRUPT_GATE_32);
+		++i;
+	}
 }
 
 static void
