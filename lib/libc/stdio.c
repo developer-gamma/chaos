@@ -19,6 +19,12 @@ puts(char const *str)
 }
 
 int
+putsn(char const *str, size_t n)
+{
+	return (io_putsn(str, n));
+}
+
+int
 putc(int c)
 {
 	return (io_putc(c));

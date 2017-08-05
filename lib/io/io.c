@@ -22,6 +22,12 @@ default_puts(char const *str __unused)
 	return (-1);
 }
 
+static int
+default_putsn(char const *str __unused, size_t n __unused)
+{
+	return (-1);
+}
+
 static char
 default_getc(void)
 {
@@ -32,6 +38,7 @@ static struct io_output_callbacks	serial_cb =
 {
 	.putc = &default_putc,
 	.puts = &default_puts,
+	.putsn = &default_putsn,
 };
 
 static struct io_output_callbacks	console_cb =
@@ -57,6 +64,13 @@ io_puts(char const *s)
 {
 	serial_cb.puts(s);
 	return (console_cb.puts(s));
+}
+
+int
+io_putsn(char const *s, size_t n)
+{
+	serial_cb.putsn(s, n);
+	return (console_cb.putsn(s, n));
 }
 
 char

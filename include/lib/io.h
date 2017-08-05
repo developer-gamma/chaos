@@ -10,14 +10,18 @@
 #ifndef _LIB_IO_H_
 # define _LIB_IO_H_
 
+# include <stddef.h>
+
 typedef char	(*io_getc_cb)(void);
 typedef int	(*io_putc_cb)(int);
 typedef int	(*io_puts_cb)(char const *);
+typedef int	(*io_putsn_cb)(char const *, size_t);
 
 struct		io_output_callbacks
 {
 	io_putc_cb putc;
 	io_puts_cb puts;
+	io_putsn_cb putsn;
 };
 
 struct		io_input_callbacks
@@ -33,6 +37,7 @@ enum		io_output_types
 
 int	io_putc(int c);
 int	io_puts(char const *str);
+int	io_putsn(char const *str, size_t);
 char	io_getc(void);
 
 void	register_io_output_callbacks(struct io_output_callbacks *, enum io_output_types);

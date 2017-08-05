@@ -92,6 +92,7 @@ vga_scroll(void)
 
 /*
 ** Prints a single character on the screen.
+** Doesn't move the cursor
 */
 static int
 vga_naked_putchar(int c)
@@ -151,6 +152,21 @@ vga_puts(char const *str)
 }
 
 /*
+** Prints a known-size array of characters on the screen
+*/
+static int
+vga_putsn(char const *str, size_t n)
+{
+	while (n) {
+		vga_naked_putchar(*str);
+		++str;
+		--n;
+	}
+	move_cursor();
+	return (n);
+}
+
+/*
 ** Initializes the vga driver
 */
 static void
@@ -166,6 +182,7 @@ vga_init(enum init_level il __unused)
 
 	cb.putc = vga_putchar;
 	cb.puts = vga_puts;
+	cb.putsn = vga_putsn;
 	register_io_output_callbacks(&cb, IO_OUTPUT_CONSOLE);
 }
 

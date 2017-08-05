@@ -33,13 +33,23 @@ uart_puts(char const *str)
 	return (str - s);
 }
 
+static int
+uart_putsn(char const *str, size_t n)
+{
+	while (n)
+	{
+		outb(COM1, *str);
+		++str;
+		--n;
+	}
+	return (n);
+}
+
 static void
 uart_init(enum init_level il __unused)
 {
 	struct io_output_callbacks cb;
 
-	cb.putc = &uart_putc;
-	cb.puts = &uart_puts;
 	outb(COM1 + 1, 0x00);	/* Disable all interrupts			*/
 	outb(COM1 + 3, 0x80);	/* Enable DLAB (set baud rate divisor)		*/
 	outb(COM1 + 0, 0x03);	/* Set divisor to 3 (lo byte) 38400 baud	*/
@@ -49,6 +59,9 @@ uart_init(enum init_level il __unused)
 	outb(COM1 + 4, 0x0B);	/* IRQs enabled, RTS/DSR set);			*/
 
 	if(inb(COM1 + 5) != 0xFF) {
+		cb.putc = &uart_putc;
+		cb.puts = &uart_puts;
+		cb.putsn = &uart_putsn;
 		register_io_output_callbacks(&cb, IO_OUTPUT_SERIAL);
 	}
 }

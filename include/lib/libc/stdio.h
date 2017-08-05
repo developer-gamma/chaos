@@ -25,6 +25,7 @@ struct printf_output_args
 };
 
 int		puts(char const *str);
+int		putsn(char const *str, size_t); /* Not standard but useful */
 int		putchar(int c);
 
 /* printf-like functions */

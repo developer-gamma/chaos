@@ -92,6 +92,8 @@ x86_irq_handler(struct regs * regs)
 
 /*
 ** Common handler for all syscalls
+**
+** Arguments are in regs->edi, regs->esi, regs->edx and regs->ecx.
 */
 void
 x86_syscalls_handler(struct regs *regs)
@@ -99,7 +101,7 @@ x86_syscalls_handler(struct regs *regs)
 	switch (regs->eax)
 	{
 		case WRITE:
-			printf("%s", (void *)regs->esi);
+			putsn((char const *)regs->esi, (size_t)regs->edx);
 			break;
 		default:
 			panic("Unknown syscall %p\n", regs->eax);
