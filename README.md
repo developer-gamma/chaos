@@ -67,7 +67,7 @@ These are all the features that i'd like to implement by the end of 2017's summe
   - [X] Scheduling
   - [X] Kernel threads
   - [ ] Processes (`fork()` and `exit()`)
-- [ ] Syscall interface
+- [X] Syscall interface
 - [ ] Userspace (ring3)
 - [ ] Filesystem (`open()`, `read()`, `write()`, `close()`, `unlink`, `opendir()`, `readdir()`, `closedir()`, `pipe()`, `dup()`, `dup2()`)
 - [ ] ELF loading
