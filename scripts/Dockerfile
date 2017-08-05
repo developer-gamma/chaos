@@ -20,6 +20,7 @@ COPY include /chaos/include
 COPY kernel /chaos/kernel
 COPY lib /chaos/lib
 COPY scripts /chaos/scripts
+COPY userspace /chaos/userspace
 COPY Makefile /chaos/Makefile
 
 RUN make clean
