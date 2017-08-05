@@ -103,11 +103,20 @@ vga_naked_putchar(int c)
 		vga.cursor_x = 0;
 		vga.cursor_y++;
 		break;
-	case '\t':
+	case '\t': /* tabulation */
 		vga.cursor_x = (vga.cursor_x + 8u) & ~7u;
 		break;
-	case '\r':
+	case '\r': /* carriage return */
 		vga.cursor_x = 0;
+		break;
+	case '\b': /* backspace */
+		if (vga.cursor_x == 0) {
+			vga.cursor_y -= (vga.cursor_y > 0);
+			vga.cursor_x = VGA_WIDTH - 1;
+		}
+		else {
+			vga.cursor_x -= (vga.cursor_x > 0);
+		}
 		break;
 	default:
 		*(vga.vgabuff + vga.cursor_y * VGA_WIDTH + vga.cursor_x) =

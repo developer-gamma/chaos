@@ -91,6 +91,38 @@ x86_irq_handler(struct regs * regs)
 }
 
 /*
+** Quick & dirty sys_write() to handle standard output.
+** Doesn't take the file descriptor into account.
+*/
+int
+sys_write(int fd __unused, char const *buff, size_t size)
+{
+	return (putsn(buff, size));
+}
+
+extern char	keyboard_next_input(void);
+
+/*
+** Quick & dirty sys_read() to handle keyboard input.
+** Doesn't take the file descriptor into account.
+*/
+int
+sys_read(int fd __unused, char *buff, size_t size)
+{
+	char c;
+
+	if (size)
+	{
+		c = keyboard_next_input();
+		if (c != '\0') {
+			buff[0] = c;
+			return (1);
+		}
+	}
+	return (0);
+}
+
+/*
 ** Common handler for all syscalls
 **
 ** Arguments are in regs->edi, regs->esi, regs->edx and regs->ecx.
@@ -101,10 +133,10 @@ x86_syscalls_handler(struct regs *regs)
 	switch (regs->eax)
 	{
 		case WRITE:
-			regs->eax = putsn((char const *)regs->esi, (size_t)regs->edx);
+			regs->eax = sys_write((int)regs->edi, (char const *)regs->esi, (size_t)regs->edx);
 			break;
 		case READ:
-			while (42);
+			regs->eax = sys_read((int)regs->edi, (char *)regs->esi, (size_t)regs->edx);
 			break;
 		case BRK:
 			regs->eax = ubrk((void *)regs->edi);

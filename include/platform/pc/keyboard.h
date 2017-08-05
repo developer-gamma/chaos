@@ -15,4 +15,6 @@
 # define KEYBOARD_INT_HANDLER		0x01
 # define KEYBOARD_IO_PORT		0x60
 
+char		keyboard_read_next_char(void);
+
 #endif /* !_PLATFORM_PC_KEYBOARD_H_ */
