@@ -93,6 +93,9 @@ start:
 
 	lgdt [gdtptr]			; reload the gdt
 
+	mov ax, TSS_SELECTOR | 0b11
+	ltr ax
+
 	; Unmap the low memory
 	mov dword [boot_page_directory.first_entry], 0
 	mov eax, cr3

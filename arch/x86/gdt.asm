@@ -7,6 +7,7 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+global gdt_tss_entry
 global gdtptr_phys
 global gdtptr
 
