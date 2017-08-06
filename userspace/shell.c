@@ -69,10 +69,40 @@ strcmp(char const *s1, char const *s2)
 	return (s1 - s2);
 }
 
+static inline uintptr
+get_cs(void)
+{
+	uintptr cs;
+
+	asm volatile("mov %%cs, %0" : "=r"(cs));
+	return (cs);
+}
+
+static inline uintptr
+get_ds(void)
+{
+	uintptr ds;
+
+	asm volatile("mov %%ds, %0" : "=r"(ds));
+	return (ds);
+}
+
+static bool
+is_in_usermode(void)
+{
+	uint ds;
+	uint cs;
+
+	ds = get_ds();
+	cs = get_cs();
+	return ((ds & 0b11) && (cs & 0b11));
+}
+
 static void
 prompt(void)
 {
-	puts("$> ");
+	puts(is_in_usermode() ? "user" : "kernel");
+	puts(" $> ");
 }
 
 static char *

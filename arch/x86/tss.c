@@ -40,7 +40,7 @@ tss_setup(void)
 }
 
 void
-arch_set_kernel_stack(uintptr stack)
+set_kernel_stack(uintptr stack)
 {
 	tss.esp0 = stack;
 }

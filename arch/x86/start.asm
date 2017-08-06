@@ -87,13 +87,13 @@ start:
 	jmp eax
 
 .higher_half:
-	mov esp, kernel_stack_top	; reset kernel stack
+	mov esp, kernel_stack_top	; Reset kernel stack
 
-	call tss_setup			; setup the Task State Segment
+	call tss_setup			; Setup the Task State Segment
 
-	lgdt [gdtptr]			; reload the gdt
+	lgdt [gdtptr]			; Reload the gdt
 
-	mov ax, TSS_SELECTOR | 0b11
+	mov ax, TSS_SELECTOR | 0b11	; Make it a RPL 3 selector
 	ltr ax
 
 	; Unmap the low memory
