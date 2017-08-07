@@ -9,6 +9,7 @@
 
 global start:function
 global ret_kernel_main
+global int_kernel_stack_top ; TODO For debugging purposes
 
 extern gdtptr_phys
 extern gdtptr
@@ -137,3 +138,7 @@ align 4096
 kernel_stack_bottom:
 	resb 4096 * 16			; Byte reserved for kernel stack (at boot-time)
 kernel_stack_top:
+
+int_kernel_stack_bottom:
+	resb 4096 * 16			; Byte reserved for kernel stack (debugging purposes)
+int_kernel_stack_top:

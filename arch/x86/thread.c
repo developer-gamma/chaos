@@ -9,6 +9,7 @@
 
 #include <kernel/spinlock.h>
 #include <kernel/thread.h>
+#include <arch/x86/tss.h>
 #include <arch/thread.h>
 #include <lib/interrupts.h>
 #include <string.h>
@@ -23,12 +24,17 @@ extern struct spinlock thread_table_lock;
 static void
 thread_main(void)
 {
+	extern void *int_kernel_stack_top;
+
 	/* Release the lock acquired in the yield() that brought us here. */
 	release_lock(&thread_table_lock);
+	set_kernel_stack((uintptr)&int_kernel_stack_top);
 	enable_interrupts();
 
-	current_thread->entry();
+	/* User mode, still a WIP */
+	// x86_jump_usermode(current_thread->entry);
 
+	current_thread->entry();
 	thread_exit();
 }
 

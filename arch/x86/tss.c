@@ -8,6 +8,7 @@
 \* ------------------------------------------------------------------------ */
 
 #include <arch/x86/tss.h>
+#include <arch/x86/x86.h>
 #include <string.h>
 
 struct tss tss;
@@ -37,6 +38,8 @@ tss_setup(void)
 	gdt_tss_entry.available = 0;
 	gdt_tss_entry.granularity = 0;
 	gdt_tss_entry.base_high = (base & 0xFF000000) >> 24u;
+
+	tss.ss0 = KERNEL_DATA_SELECTOR;
 }
 
 void

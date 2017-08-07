@@ -33,7 +33,6 @@ idt_set_present(struct idt_entry *entry, bool p)
 static inline void
 idt_set_dpl(struct idt_entry *entry, enum dpl dpl)
 {
-	assert(dpl >= 0 && dpl <= 3);
 	entry->flags &= ~(3u << 5u);
 	entry->flags |= dpl << 5u;
 }

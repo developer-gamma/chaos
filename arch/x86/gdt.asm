@@ -62,7 +62,7 @@ gdt_start:
 	dw 0xFFFF	; limit 15:0
 	dw 0x0000	; base 15:0
 	db 0x00		; base 23:16
-	db 0b11000010	; P(1) DPL(11) (1) C(0) E(0) W(1) A(0)
+	db 0b11110010	; P(1) DPL(11) (1) C(0) E(0) W(1) A(0)
 	db 0b11001111	; G(1) S(1) (0) (0) limit 19:16
 	db 0x00		; base 31:24
 

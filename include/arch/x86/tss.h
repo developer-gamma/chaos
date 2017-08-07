@@ -70,4 +70,6 @@ struct gdt_tss_entry
 
 static_assert(sizeof(struct gdt_tss_entry) == 2 * sizeof(uintptr));
 
+void			set_kernel_stack(uintptr stack);
+
 #endif /* !_ARCH_X86_TSS_H_ */
