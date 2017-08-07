@@ -32,6 +32,16 @@ enum			thread_state
 	ZOMBIE,
 };
 
+/* String to print thread state */
+static char const *thread_state_str[] =
+{
+	[NONE]		= "NONE",
+	[SUSPENDED]	= "SUSPENDED",
+	[RUNNABLE]	= "RUNNABLE",
+	[RUNNING]	= "RUNNING",
+	[ZOMBIE]	= "ZOMBIE",
+};
+
 struct			thread
 {
 	/* Thread basic infos*/
@@ -53,9 +63,10 @@ struct			thread
 	struct vaspace *vaspace;
 };
 
-struct thread		*thread_create(char const *name, thread_entry_cb entry, size_t stack_size);
 void			thread_init(void);
-void			thread_become_init(void);
+void			thread_early_init(void);
+
+struct thread		*thread_create(char const *name, thread_entry_cb entry, size_t stack_size);
 void			thread_dump(void);
 void			thread_yield(void);
 void			thread_reschedule(void);

@@ -29,10 +29,11 @@ find_next_thread(void)
 	pass = false;
 	t = get_current_thread() + 1;
 	limit = thread_table + MAX_PID;
+
 look_for_next:
 	while (t < limit)
 	{
-		if (t->pid != 0 && t->state == RUNNABLE) {
+		if (t->state == RUNNABLE) {
 			return (t);
 		}
 		t++;
@@ -40,11 +41,11 @@ look_for_next:
 	if (!pass)
 	{
 		t = thread_table;
-		limit = get_current_thread();
+		limit = get_current_thread() + 1;
 		pass = true;
 		goto look_for_next;
 	}
-	return (init_thread);
+	return (get_current_thread());
 }
 
 /*

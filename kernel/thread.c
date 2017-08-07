@@ -25,16 +25,6 @@ struct spinlock thread_table_lock;
 /* Default virtual address space for the boot thread */
 struct vaspace default_vaspace;
 
-/* String to print thread state */
-static char const *thread_state_str[] =
-{
-	[NONE]		= "NONE",
-	[SUSPENDED]	= "SUSPENDED",
-	[RUNNABLE]	= "RUNNABLE",
-	[RUNNING]	= "RUNNING",
-	[ZOMBIE]	= "ZOMBIE",
-};
-
 /*
 ** Look for the next available pid.
 ** Returns -1 if no pid are available.
@@ -157,21 +147,39 @@ thread_resume(struct thread *t)
 }
 
 /*
-** Mark the current thread as the init thread.
+** Finish the current thread init
 */
 void
-thread_become_init(void)
+thread_init(void)
 {
+	struct thread *t;
+
 	assert(!are_int_enabled());
 
-	/* Set the thread name to 'init' */
-	thread_set_name(get_current_thread(), "init");
+	/* Create the init thread */
+	t = thread_create("init", &init_routine, DEFAULT_STACK_SIZE);
+	assert_neq(t, NULL);
+	assert_eq(t, init_thread);
+	assert_eq(t->pid, 1);
 
-	/* Enable interrupts */
+	printf("[OK]\tMulti-threading\n");
+
+	/* Print HelloWorld message */
+	printf("\nWelcome to ChaOS\n\n");
+
+	/* Enable interrupts (hurrah !) */
 	enable_interrupts();
 
-	/* Do the init routine */
-	init_routine();
+	LOCK_THREAD(state);
+
+	/* Remove the boot thread from the active threads */
+	get_current_thread()->state = NONE;
+
+	/* Set the init thread as runnable */
+	t->state = RUNNABLE;
+
+	/* Reschedule */
+	thread_reschedule();
 }
 
 /*
@@ -179,14 +187,14 @@ thread_become_init(void)
 ** Called from kmain.
 */
 void
-thread_init(void)
+thread_early_init(void)
 {
 	struct thread *t;
 
-	t = init_thread;
+	t = thread_table;
 	memset(thread_table, 0, sizeof(thread_table));
 	thread_set_name(t, "boot");
-	t->pid = 1;
+	t->pid = 0;
 	t->state = RUNNING;
 	t->vaspace = &default_vaspace;
 
@@ -195,14 +203,13 @@ thread_init(void)
 	init_lock(&default_vaspace.lock);
 
 	default_vaspace.mmapping_start = (char *)ALIGN((uintptr)KERNEL_VIRTUAL_BASE, PAGE_SIZE) - PAGE_SIZE;
-
 	default_vaspace.binary_limit = ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE);
-
 	default_vaspace.heap_start = (char *)default_vaspace.binary_limit + PAGE_SIZE;
-
 	default_vaspace.binary_limit = ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE);
 
 	set_current_thread(t);
+
+	/* Register the timer handler. */
 	register_int_handler(IRQ_TIMER_VECTOR, &irq_timer_handler);
 }
 
@@ -214,8 +221,7 @@ thread_dump(void)
 {
 	struct thread *t;
 
-	t = init_thread;
-	printf("\n");
+	t = thread_table;
 	while (t < thread_table + MAX_PID)
 	{
 		if (t->state != NONE) {

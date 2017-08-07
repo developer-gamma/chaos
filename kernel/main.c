@@ -23,7 +23,7 @@ void
 kernel_main(uintptr mb_addr)
 {
 	/* Put us in the boot thread */
-	thread_init();
+	thread_early_init();
 
 	/* Super super early hooks goes first. */
 	kernel_init_level(CHAOS_INIT_LEVEL_EARLIEST, CHAOS_INIT_LEVEL_ARCH_EARLY - 1);
@@ -43,11 +43,8 @@ kernel_main(uintptr mb_addr)
 	kernel_init_level(CHAOS_INIT_LEVEL_ARCH, CHAOS_INIT_LEVEL_PLATFORM - 1);
 	kernel_init_level(CHAOS_INIT_LEVEL_PLATFORM, CHAOS_INIT_LEVEL_LATEST);
 
-	/* Print hello message */
-	printf("\nWelcome to ChaOS\n\n");
-
-	/* Become the init thread and enable interrupts */
-	thread_become_init();
+	/* Build the init process, print hello message, enable multithreading and let's go! */
+	thread_init();
 
 	panic("Leaving kernel main");
 }
