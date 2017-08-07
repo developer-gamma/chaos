@@ -152,9 +152,6 @@ pmm_init(enum init_level il __unused)
 
 /*
 ** Some unit tests for the frame allocator.
-**
-** TODO Write a unit-test framework within the kernel,
-** so that we can test all of this through Travis.
 */
 static void
 pmm_test(void)

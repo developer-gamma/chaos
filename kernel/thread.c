@@ -167,7 +167,7 @@ thread_init(void)
 	/* Print HelloWorld message */
 	printf("\nWelcome to ChaOS\n\n");
 
-	/* Enable interrupts (hurrah !) */
+	/* Enable interrupts (hurrah!) */
 	enable_interrupts();
 
 	LOCK_THREAD(state);
