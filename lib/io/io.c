@@ -9,6 +9,7 @@
 
 #include <chaosdef.h>
 #include <lib/io.h>
+#include <string.h>
 
 static int
 default_putc(int c __unused)
@@ -45,6 +46,7 @@ static struct io_output_callbacks	console_cb =
 {
 	.putc = &default_putc,
 	.puts = &default_puts,
+	.putsn = &default_putsn,
 };
 
 static struct io_input_callbacks	input_cb =
@@ -56,21 +58,30 @@ int
 io_putc(int c)
 {
 	serial_cb.putc(c);
-	return (console_cb.putc(c));
+	console_cb.putc(c);
+	return (1);
 }
 
 int
 io_puts(char const *s)
 {
-	serial_cb.puts(s);
-	return (console_cb.puts(s));
+	size_t n1;
+	size_t n2;
+
+	n1 = serial_cb.puts(s);
+	n2 = console_cb.puts(s);
+	if (n1 == n2 && n1) {
+		return (n1);
+	}
+	return (strlen(s));
 }
 
 int
 io_putsn(char const *s, size_t n)
 {
 	serial_cb.putsn(s, n);
-	return (console_cb.putsn(s, n));
+	console_cb.putsn(s, n);
+	return (n);
 }
 
 char
