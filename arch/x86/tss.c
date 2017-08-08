@@ -21,11 +21,10 @@ tss_setup(void)
 	uintptr limit;
 	uintptr base;
 
-	limit = (uintptr)&tss;
-	base = (uintptr)sizeof(tss);
+	base = (uintptr)&tss;
+	limit = (uintptr)sizeof(tss);
 
 	memset(&gdt_tss_entry, 0, sizeof(gdt_tss_entry));
-	memset(&tss, 0, sizeof(tss));
 
 	gdt_tss_entry.limit_low = limit & 0xFFFF;
 	gdt_tss_entry.base_low = base & 0xFFFFFF;
@@ -39,7 +38,12 @@ tss_setup(void)
 	gdt_tss_entry.granularity = 0;
 	gdt_tss_entry.base_high = (base & 0xFF000000) >> 24u;
 
+	memset(&tss, 0, sizeof(tss));
+	tss.esp0 = 0;
 	tss.ss0 = KERNEL_DATA_SELECTOR;
+	tss.ss1 = 0;
+	tss.ss2 = 0;
+	tss.eflags = 0x00003002;
 }
 
 void

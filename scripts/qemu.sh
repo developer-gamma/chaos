@@ -19,19 +19,22 @@ function print_usage {
 	echo -e "\t-a <arch>		architecture (Valid values are 'x86' and 'x86_64') (Default: x86)"
 	echo -e "\t-d			debug mode"
 	echo -e "\t-t			monitor mode"
+	echo -e "\t-k			enables kvm (if available)"
 	echo -e "\t-m <MB> 		memory (in MB) (Default: 512MB)"
 	echo -e "\t-h			print this help menu"
 	exit 1
 }
 
 DEBUG=0
+KVM=0
 MONITOR=0
 MEMORY=512
 ARCH="x86"
 
-while getopts dthm:a: FLAG; do
+while getopts dtkhm:a: FLAG; do
 	case $FLAG in
 		d) DEBUG=1;;
+		k) KVM=1;;
 		t) MONITOR=1;;
 		m) MEMORY="$OPTARG";;
 		a) ARCH="$OPTARG";;
@@ -64,7 +67,11 @@ fi
 ARGS="-m $MEMORY -cdrom $ISO"
 
 if [ $DEBUG == 1 ]; then
-	ARGS+=" -s -d int,cpu_reset,guest_errors -no-reboot"
+	ARGS+=" -s -d int,cpu_reset,guest_errors,unimp"
+fi
+
+if [ $KVM == 1 ]; then
+	ARGS+=" --enable-kvm"
 fi
 
 if [ $MONITOR == 1 ]; then

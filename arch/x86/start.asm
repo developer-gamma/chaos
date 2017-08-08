@@ -94,7 +94,7 @@ start:
 
 	lgdt [gdtptr]			; Reload the gdt
 
-	mov ax, TSS_SELECTOR | 0b11	; Make it a RPL 3 selector
+	mov ax, TSS_SELECTOR
 	ltr ax
 
 	; Unmap the low memory

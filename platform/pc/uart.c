@@ -20,7 +20,7 @@ uart_putc(int c)
 	return (1);
 }
 
-static int
+int
 uart_puts(char const *str)
 {
 	char const *s;

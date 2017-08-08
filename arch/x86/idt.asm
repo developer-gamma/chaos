@@ -34,6 +34,7 @@ extern x86_setup_default_idt
 ;
 %macro NEW_EXCEPTION_HANDLER 3
 	global x86_%2_handler:function
+	align 8
 	x86_%2_handler:
 %if %3 != 1
 		push dword 0	; Push dummy error code
@@ -46,7 +47,8 @@ extern x86_setup_default_idt
 		push es
 		push fs
 		push gs
-		mov ax, KERNEL_CODE_SELECTOR
+
+		mov ax, KERNEL_DATA_SELECTOR
 		mov ds, ax
 		mov es, ax
 		mov fs, ax
@@ -202,6 +204,7 @@ idt_setup:
 	ADD_IDT_ENTRY		0x2F,		irq_F
 
 	mov dword [esp + 0x8], 0xF		; Set the interrupt gate to Trap Interrupt 32 bits
+	mov dword [esp + 0x4], 0x3		; DPL (Ring 3)
 
 	; Add the syscall entry
 	ADD_IDT_ENTRY		0x80,		syscall

@@ -91,6 +91,10 @@ debug:		$(ISO)
 		echo -e "  SHELL\t qemu.sh"
 		./scripts/qemu.sh -d -m 1G -a $(ARCH)
 
+kvm:		$(ISO)
+		echo -e "  SHELL\t qemu.sh"
+		./scripts/qemu.sh -d -k -m 1G -a $(ARCH)
+
 %.o:		%.asm
 		$(NASM) $(NASMFLAGS) $< -o $@ && echo -e "  NASM\t $<"
 

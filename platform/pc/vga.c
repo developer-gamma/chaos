@@ -146,7 +146,7 @@ vga_putchar(int c)
 /*
 ** Prints an array of characters on the screen
 */
-static int
+int
 vga_puts(char const *str)
 {
 	char const *s;

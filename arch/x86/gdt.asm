@@ -17,7 +17,7 @@ global gdtptr
 section .rodata
 align 16
 gdtptr_phys:
-	dw gdt_without_tss_end - gdt_start - 1
+	dw gdt_end - gdt_start - 1
 	dd PHYS(gdt)
 
 section .rodata
@@ -30,7 +30,7 @@ section .data
 align 16
 gdt:
 gdt_start:
-	; null entry
+	; Null entry
 	dd 0
 	dd 0
 
@@ -66,14 +66,16 @@ gdt_start:
 	db 0b11001111	; G(1) S(1) (0) (0) limit 19:16
 	db 0x00		; base 31:24
 
-gdt_without_tss_end:
-
-	; Tss entry
 gdt_tss_entry:
-	dw 0xFFFF	; limit 15:0
+	; Tss selector
+	dw 0x0000	; limit 15:0
 	dw 0x0000	; base 15:0
 	db 0x00		; base 23:16
-	db 0b11000011	; P(1) DPL(11) (1) C(0) E(0) W(1) A(0)
-	db 0b11001111	; G(1) S(1) (0) (0) limit 19:16
+	db 0b11101001	; P(1) DPL(11) 0 10 B(0) 1
+	db 0b10000000	; G(1) 0 0 AVL(0) limit 19:16
 	db 0x00		; base 31:24
+
+	; Null entry
+	dd 0
+	dd 0
 gdt_end:

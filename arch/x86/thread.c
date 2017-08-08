@@ -24,15 +24,17 @@ extern struct spinlock thread_table_lock;
 static void
 thread_main(void)
 {
-	extern void *int_kernel_stack_top;
-
 	/* Release the lock acquired in the yield() that brought us here. */
 	release_lock(&thread_table_lock);
+
+	/* TODO Here for debugging purposes only */
+	extern void *int_kernel_stack_top;
 	set_kernel_stack((uintptr)&int_kernel_stack_top);
+
 	enable_interrupts();
 
-	/* User mode, still a WIP */
-	// x86_jump_usermode(current_thread->entry);
+	/* User mode, never returns. still a WIP */
+	//x86_jump_usermode(current_thread->entry);
 
 	current_thread->entry();
 	thread_exit();
