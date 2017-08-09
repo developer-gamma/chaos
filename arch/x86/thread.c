@@ -9,6 +9,7 @@
 
 #include <kernel/spinlock.h>
 #include <kernel/thread.h>
+#include <arch/x86/x86.h>
 #include <arch/x86/tss.h>
 #include <arch/thread.h>
 #include <lib/interrupts.h>
@@ -55,7 +56,7 @@ arch_init_thread(struct thread *t)
 	frame--;
 	memset(frame, 0, sizeof(*frame));
 	frame->eip = (uintptr)&thread_main;
-	frame->eflags = 0x2;
+	frame->eflags = FL_DEFAULT | FL_IOPL_3;
 	t->arch.sp = frame;
 }
 

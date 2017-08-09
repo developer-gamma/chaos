@@ -25,6 +25,33 @@
 # define RESET_MASTER_PIC()	outb(0x20, 0x20);
 
 /*
+** This structure represents the registers and all other informations that
+** each interrupt handler receives when triggered.
+*/
+struct		iframe
+{
+		uintptr gs;
+		uintptr fs;
+		uintptr es;
+		uintptr ds;
+		uintptr edi;
+		uintptr esi;
+		uintptr ebp;
+		uintptr _popa_esp;
+		uintptr ebx;
+		uintptr edx;
+		uintptr ecx;
+		uintptr eax;
+		uintptr int_num;
+		uintptr err_code;
+		uintptr eip;
+		uintptr cs;
+		uintptr eflags;
+		uintptr esp;
+		uintptr ss;
+};
+
+/*
 ** An enum of all common interruptions.
 */
 enum		x86_interrupts
@@ -97,6 +124,6 @@ struct		idt_entry
 
 static_assert(sizeof(struct idt_entry) == 2 * sizeof(uint32));
 
-typedef void (*x86_int_handler)(struct regs *);
+typedef void (*x86_int_handler)(struct iframe *);
 
 #endif /* !_ARCH_X86_INTERRUPTS_H_ */

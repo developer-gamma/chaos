@@ -14,24 +14,24 @@
 #include <stdio.h>
 
 __noreturn static void
-x86_unhandled_exception(struct regs *regs)
+x86_unhandled_exception(struct iframe *iframe)
 {
 	panic("Unhandled exception %#hhx\n"
-		"\tError code: %#x", regs->int_num, regs->err_code);
+		"\tError code: %#x", iframe->int_num, iframe->err_code);
 }
 
 static status_t
-x86_breakpoint_handler(struct regs *regs)
+x86_breakpoint_handler(struct iframe *iframe)
 {
 	printf("Breakpoint.\n"
 		"\tEIP: %p\n"
 		"\tESP: %p\n",
-		regs->eip, regs->esp);
+		iframe->eip, iframe->esp);
 	return OK;
 }
 
 static status_t
-x86_pagefault_handler(struct regs *regs)
+x86_pagefault_handler(struct iframe *iframe)
 {
 	uintptr addr;
 
@@ -42,30 +42,30 @@ x86_pagefault_handler(struct regs *regs)
 		"\tWrite: %y\n"
 		"\tUser-mode: %y\n"
 		"\tReserved: %y\n",
-		regs->eip,
+		iframe->eip,
 		(void *)addr,
-		(bool)((regs->err_code ^ 0x1)),
-		(bool)((regs->err_code & 0x2)),
-		(bool)((regs->err_code & 0x4)),
-		(bool)((regs->err_code & 0x8)));
+		(bool)((iframe->err_code ^ 0x1)),
+		(bool)((iframe->err_code & 0x2)),
+		(bool)((iframe->err_code & 0x4)),
+		(bool)((iframe->err_code & 0x8)));
 }
 
 /*
 ** Common handler for all exceptions.
 */
 void
-x86_exception_handler(struct regs *regs)
+x86_exception_handler(struct iframe *iframe)
 {
-	switch (regs->int_num)
+	switch (iframe->int_num)
 	{
 	case X86_INT_BREAKPOINT:
-		x86_breakpoint_handler(regs);
+		x86_breakpoint_handler(iframe);
 		break;
 	case X86_INT_PAGE_FAULT:
-		x86_pagefault_handler(regs);
+		x86_pagefault_handler(iframe);
 		break;
 	default:
-		x86_unhandled_exception(regs);
+		x86_unhandled_exception(iframe);
 		break;
 	}
 }
@@ -74,14 +74,14 @@ x86_exception_handler(struct regs *regs)
 ** Common handler for all IRQs.
 */
 void
-x86_irq_handler(struct regs * regs)
+x86_irq_handler(struct iframe * iframe)
 {
 	enum handler_return ret;
 
-	ret = handle_interrupt(regs->int_num);
+	ret = handle_interrupt(iframe->int_num);
 
 	/* Reset the PICs */
-	if (regs->err_code > 7)
+	if (iframe->err_code > 7)
 		RESET_SLAVE_PIC();
 	RESET_MASTER_PIC();
 
@@ -125,26 +125,26 @@ sys_read(int fd __unused, char *buff, size_t size)
 /*
 ** Common handler for all syscalls
 **
-** Arguments are in regs->edi, regs->esi, regs->edx and regs->ecx.
+** Arguments are in iframe->edi, iframe->esi, iframe->edx and iframe->ecx.
 */
 void
-x86_syscalls_handler(struct regs *regs)
+x86_syscalls_handler(struct iframe *iframe)
 {
-	switch (regs->eax)
+	switch (iframe->eax)
 	{
 		case WRITE:
-			regs->eax = sys_write((int)regs->edi, (char const *)regs->esi, (size_t)regs->edx);
+			iframe->eax = sys_write((int)iframe->edi, (char const *)iframe->esi, (size_t)iframe->edx);
 			break;
 		case READ:
-			regs->eax = sys_read((int)regs->edi, (char *)regs->esi, (size_t)regs->edx);
+			iframe->eax = sys_read((int)iframe->edi, (char *)iframe->esi, (size_t)iframe->edx);
 			break;
 		case BRK:
-			regs->eax = ubrk((void *)regs->edi);
+			iframe->eax = ubrk((void *)iframe->edi);
 			break;
 		case SBRK:
-			regs->eax = (uintptr)usbrk((intptr)regs->edi);
+			iframe->eax = (uintptr)usbrk((intptr)iframe->edi);
 			break;
 		default:
-			panic("Unknown syscall %p\n", regs->eax);
+			panic("Unknown syscall %p\n", iframe->eax);
 	}
 }

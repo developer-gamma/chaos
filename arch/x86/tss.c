@@ -34,7 +34,7 @@ tss_setup(void)
 	tss.ss0 = KERNEL_DATA_SELECTOR;
 	tss.ss1 = 0;
 	tss.ss2 = 0;
-	tss.eflags = 0x00003002;
+	tss.eflags = FL_DEFAULT | FL_IOPL_3;
 }
 
 void

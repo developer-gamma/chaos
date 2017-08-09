@@ -127,7 +127,7 @@ x86_are_int_enabled(void)
 	uint eflags;
 
 	eflags = get_eflags();
-	return ((bool)(eflags & (1 << 9)));
+	return ((bool)(eflags & FL_IF));
 }
 
 /*
