@@ -10,16 +10,18 @@
 #ifndef _CONFIG_
 # define _CONFIG_
 
+# include <chaosdef.h>
+
 /*
 ** This file is used as a configuration file to
 ** let you customize ChaOS.
 */
 
 /* Maximum number of processes running at the same time */
-# define MAX_PID		32
+# define MAX_PID		(32)
 
 /* Default size of a thread's stack */
-# define DEFAULT_STACK_SIZE	0x1000 * 16u
+# define DEFAULT_STACK_SIZE	(PAGE_SIZE* 16u)
 
 /* [X86] Comment to disable SSE instructions (floating points) */
 /* TODO Not implemented yet */
