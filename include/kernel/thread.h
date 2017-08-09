@@ -13,10 +13,7 @@
 # include <kernel/vmm.h>
 # include <arch/thread.h>
 # include <chaosdef.h>
-
-/* Maximum number of threads */
-# define MAX_PID		(32u)
-# define DEFAULT_STACK_SIZE	(PAGE_SIZE * 16u)
+# include <config.h>
 
 # define IRQ_TIMER_VECTOR	(0x0)
 
