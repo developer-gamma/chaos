@@ -4,10 +4,12 @@ ChaOS is a fun project that i'm doing to entertain myself during 2017's summer v
 
 It's a unix-like featureless kernel, that only supports x86 (Intel 32 bits). My goal is to end-up having a basic shell that can handle simple userland commands like `ls`, `cat` and `echo`.
 
-||
+| Screenshots |
 | :---: |
-|![ChaOS ScreenShot](http://i.imgur.com/pcinak3.png "ChaOS ScreenShot")|
+|![ChaOS ScreenShot](http://i.imgur.com/pcinak3.png "ChaOS ScreenShot") |
 | *Screenshot of ChaOS, the 8th of August 2017 (Work In Progress)* |
+|![ChaOS ScreenShot Real Hardware](http://i.imgur.com/ymmIZIW.jpg "ChaOS ScreenShot Real Hardware") |
+| *Screenshot of ChaOS on real hardware, the 9th of August 2017 (Work In Progress)* |
 
 # Build Dependencies
 * `nasm`
