@@ -12,6 +12,17 @@
 
 # include <chaosdef.h>
 
-void			multiboot_load(uintptr mb_addr);
+struct cmd_options
+{
+	bool unit_test;
+};
+
+struct multiboot_info
+{
+	char const *args;
+};
+
+struct cmd_options cmd_options;
+struct multiboot_info multiboot_info;
 
 #endif /* !_KERNEL_MULTIBOOT_H_ */

@@ -9,18 +9,12 @@
 
 #include <kernel/init.h>
 #include <kernel/thread.h>
-#include <kernel/options.h>
-#include <kernel/multiboot.h>
-#include <kernel/alloc.h>
-#include <lib/interrupts.h>
-#include <stdio.h>
-#include <string.h>
 
 /*
 ** Common entry point of the kernel.
 */
 void
-kernel_main(uintptr mb_addr)
+kernel_main(void)
 {
 	/* Put us in the boot thread */
 	thread_early_init();
@@ -30,10 +24,10 @@ kernel_main(uintptr mb_addr)
 
 	/* Then goes early arch and platform stuff */
 	kernel_init_level(CHAOS_INIT_LEVEL_ARCH_EARLY, CHAOS_INIT_LEVEL_PLATFORM_EARLY - 1);
-	kernel_init_level(CHAOS_INIT_LEVEL_PLATFORM_EARLY, CHAOS_INIT_LEVEL_PMM - 1);
+	kernel_init_level(CHAOS_INIT_LEVEL_PLATFORM_EARLY, CHAOS_INIT_LEVEL_MULTIBOOT - 1);
 
 	/* Load the multiboot structure */
-	multiboot_load(mb_addr);
+	kernel_init_level(CHAOS_INIT_LEVEL_MULTIBOOT, CHAOS_INIT_LEVEL_PMM - 1);
 
 	/* Initialize the memory management */
 	kernel_init_level(CHAOS_INIT_LEVEL_PMM, CHAOS_INIT_LEVEL_VMM - 1);

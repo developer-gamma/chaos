@@ -28,3 +28,7 @@
 ; Some constants to make some shit more verbose
 %define false 0
 %define true 1
+
+; The magic number passed by a Multiboot-compliant boot loader.
+%define MULTIBOOT2_BOOTLOADER_MAGIC	(0x36d76289)
+

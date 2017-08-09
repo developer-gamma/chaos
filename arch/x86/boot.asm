@@ -16,23 +16,28 @@ extern gdtptr
 extern idt_setup
 extern tss_setup
 extern kernel_main
+extern mb_tag
 
 %include "include/arch/x86/asm.mac"
 
 section .text
 bits 32
 start:
-	; TODO - verify that we have been booted via a multiboot-compliant boot loader
-
 	; Until paging is set up, we should use physical addresses, not virtual ones,
 	; A conversion ( PHYS(addr) ) is needed.
 
 	; load a temporary kernel stack using a physical pointer
 	mov esp, PHYS(kernel_stack_top)
 
-	jmp .common_protected
+	; Check we have been booted using multiboot
+	cmp eax, MULTIBOOT2_BOOTLOADER_MAGIC
+	jne 0			; Let's crash if it's not the case
 
-.common_protected:
+	add ebx, KERNEL_VIRTUAL_BASE
+	add ebx, 8
+	mov ecx, PHYS(mb_tag)
+	mov dword [ecx], ebx
+
 	; load the new gdt
 	mov eax, PHYS(gdtptr_phys)
 	lgdt [eax]

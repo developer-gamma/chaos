@@ -53,7 +53,7 @@ cat > "$TEMP/boot/grub/grub.cfg" << EOF
 set timeout=0
 
 menuentry "ChaOS" {
-  multiboot2 /boot/chaos.bin ${BOOT_ARGS}
+	multiboot2 /boot/chaos.bin ${BOOT_ARGS}
 }
 EOF
 

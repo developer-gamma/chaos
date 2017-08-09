@@ -8,8 +8,8 @@
 \* ------------------------------------------------------------------------ */
 
 #include <kernel/init.h>
+#include <kernel/multiboot.h>
 #include <kernel/unit-tests.h>
-#include <kernel/options.h>
 #include <stdio.h>
 
 extern struct unit_test_hook const __start_chaos_unit_tests[] __weak;
@@ -32,7 +32,7 @@ trigger_unit_test_hooks(enum unit_test_level utl)
 static void
 unit_tests(enum init_level il)
 {
-	if (options_is_unit_tests_enabled())
+	if (cmd_options.unit_test)
 	{
 		trigger_unit_test_hooks((uint)il);
 	}
