@@ -15,8 +15,8 @@ global idt_setup
 extern x86_exception_handler
 extern x86_irq_handler
 extern x86_syscalls_handler
-extern x86_idt_set_vector
-extern x86_setup_default_idt
+extern setup_default_idt
+extern idt_set_vector
 
 %define NO_ERROR_CODE	0
 %define ERROR_CODE	1
@@ -79,7 +79,7 @@ extern x86_setup_default_idt
 %macro ADD_IDT_ENTRY 2
 	push x86_%2_handler
 	push %1
-	call x86_idt_set_vector
+	call idt_set_vector
 	add esp, 8
 %endmacro
 
@@ -153,7 +153,7 @@ section .text
 ; Set-up the Interrupt Descriptor Table
 idt_setup:
 
-	call x86_setup_default_idt
+	call setup_default_idt
 
 	; Push common parameters
 	push dword 0xE			; Entry type (Interrupt Gate 32 bits)

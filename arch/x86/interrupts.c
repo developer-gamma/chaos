@@ -8,10 +8,10 @@
 \* ------------------------------------------------------------------------ */
 
 #include <kernel/init.h>
+#include <kernel/interrupts.h>
 #include <arch/x86/interrupts.h>
-#include <arch/x86/asm.h>
-#include <lib/interrupts.h>
 #include <string.h>
+#include <stdio.h>
 
 /* Defined in idt.asm */
 extern struct idt_entry idt[X86_INT_MAX];
@@ -70,7 +70,7 @@ idt_set_segment_sel(struct idt_entry *entry, uint16 sel)
 ** Updates an IDT entry with the given parameters.
 */
 void
-x86_idt_set_vector(uint8 vec, uintptr callback, uint16 sel, enum dpl dpl, enum idt_entry_type type)
+idt_set_vector(uint8 vec, uintptr callback, uint16 sel, enum dpl dpl, enum idt_entry_type type)
 {
 	struct idt_entry *entry;
 
@@ -83,46 +83,50 @@ x86_idt_set_vector(uint8 vec, uintptr callback, uint16 sel, enum dpl dpl, enum i
 	idt_set_segment_sel(entry, sel);
 }
 
-static status_t
-x86_mask_interrupt(uint vector)
+/*
+** Implementation of functions from kernel/interrupts.h
+*/
+
+status_t
+mask_interrupt(uint vector)
 {
 	idt_set_present(idt + vector, false);
 	return (OK);
 }
 
-static status_t
-x86_unmask_interrupt(uint vector)
+status_t
+unmask_interrupt(uint vector)
 {
 	idt_set_present(idt + vector, true);
 	return (OK);
 }
 
-static void
-x86_enable_interrupts(void)
+void
+enable_interrupts(void)
 {
 	sti();
 }
 
-static void
-x86_disable_interrupts(void)
+void
+disable_interrupts(void)
 {
 	cli();
 }
 
-static void
-x86_push_interrupts(int_state_t *save)
+void
+push_interrupts(int_state_t *save)
 {
 	*save = get_eflags();
 }
 
-static void
-x86_pop_interrupts(int_state_t *save)
+void
+pop_interrupts(int_state_t *save)
 {
 	set_eflags(*save);
 }
 
-static bool
-x86_are_int_enabled(void)
+bool
+are_int_enabled(void)
 {
 	uint eflags;
 
@@ -132,16 +136,17 @@ x86_are_int_enabled(void)
 
 /*
 ** Sets up a default IDT
+** Called by boot.asm
 */
 void
-x86_setup_default_idt(void)
+setup_default_idt(void)
 {
 	size_t i;
 
 	i = 0;
 	while (i < X86_INT_MAX)
 	{
-		x86_idt_set_vector(i, (uintptr)&x86_unhandled_exception_handler, KERNEL_CODE_SELECTOR, DPL_RING_0, IDT_INTERRUPT_GATE_32);
+		idt_set_vector(i, (uintptr)&x86_unhandled_exception_handler, KERNEL_CODE_SELECTOR, DPL_RING_0, IDT_INTERRUPT_GATE_32);
 		++i;
 	}
 }
@@ -149,18 +154,6 @@ x86_setup_default_idt(void)
 static void
 interrupt_init(enum init_level il __unused)
 {
-	struct interrupts_callbacks cb;
-
-	cb.mask_interrupt = x86_mask_interrupt;
-	cb.unmask_interrupt = x86_unmask_interrupt;
-	cb.enable_interrupts = x86_enable_interrupts;
-	cb.disable_interrupts = x86_disable_interrupts;
-	cb.push_interrupts = x86_push_interrupts;
-	cb.pop_interrupts = x86_pop_interrupts;
-	cb.are_int_enabled = x86_are_int_enabled;
-
-	register_interrupt_callbacks(&cb);
-
 	/* Remapping IRQ */
 	outb(0x20, 0x11);
 	outb(0xA0, 0x11);
@@ -172,6 +165,8 @@ interrupt_init(enum init_level il __unused)
 	outb(0xA1, 0x01);
 	outb(0x21, 0x0);
 	outb(0xA1, 0x0);
+
+	printf("[OK]\tInterrupt Requests\n");
 }
 
 NEW_INIT_HOOK(idt_early, &interrupt_init, CHAOS_INIT_LEVEL_ARCH_EARLY);

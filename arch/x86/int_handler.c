@@ -9,8 +9,8 @@
 
 #include <kernel/syscall.h>
 #include <kernel/thread.h>
+#include <kernel/interrupts.h>
 #include <arch/x86/interrupts.h>
-#include <lib/interrupts.h>
 #include <stdio.h>
 
 __noreturn static void

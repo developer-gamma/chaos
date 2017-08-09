@@ -10,7 +10,7 @@
 #include <kernel/spinlock.h>
 #include <kernel/init.h>
 #include <kernel/thread.h>
-#include <lib/interrupts.h>
+#include <kernel/interrupts.h>
 #include <stdio.h>
 #include <string.h>
 

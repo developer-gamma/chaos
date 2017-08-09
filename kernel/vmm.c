@@ -9,17 +9,13 @@
 
 /*
 ** Architecture independant virtual memory management.
-**
-** TODO:
-**	- Support arch-independant flags for page entries
-**	- Support pages of different size.
 */
 
 #include <kernel/init.h>
 #include <kernel/unit-tests.h>
 #include <kernel/vmm.h>
 #include <kernel/thread.h>
-#include <lib/interrupts.h>
+#include <kernel/interrupts.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -85,6 +81,7 @@ mmap(virt_addr_t va, size_t size)
 	ori_va = va;
 	if (va == NULL) /* Allocate on the memory mapping segment */
 	{
+		/* TODO Use unmaped memory of the Memory Mapping segment */
 		vaspace = get_current_thread()->vaspace;
 		ori_va = mmap((char *)vaspace->mmapping_start - vaspace->mmapping_size - size, size);
 		if (ori_va != NULL) {

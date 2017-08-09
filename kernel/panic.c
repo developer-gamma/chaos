@@ -7,7 +7,7 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#include <lib/interrupts.h>
+#include <kernel/interrupts.h>
 #include <chaosdef.h>
 #include <stdio.h>
 

@@ -12,7 +12,7 @@
 
 # include <kernel/vmm.h>
 # include <kernel/spinlock.h>
-# include <lib/interrupts.h>
+# include <kernel/interrupts.h>
 # include <chaosdef.h>
 
 struct block

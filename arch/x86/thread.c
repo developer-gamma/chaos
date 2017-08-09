@@ -9,10 +9,10 @@
 
 #include <kernel/spinlock.h>
 #include <kernel/thread.h>
+#include <kernel/interrupts.h>
 #include <arch/x86/x86.h>
 #include <arch/x86/tss.h>
 #include <arch/thread.h>
-#include <lib/interrupts.h>
 #include <string.h>
 #include <stdio.h>
 

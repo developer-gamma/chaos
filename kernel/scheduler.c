@@ -9,7 +9,7 @@
 
 #include <kernel/spinlock.h>
 #include <kernel/thread.h>
-#include <lib/interrupts.h>
+#include <kernel/interrupts.h>
 #include <debug.h>
 
 extern struct thread thread_table[MAX_PID];

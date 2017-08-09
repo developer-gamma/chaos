@@ -9,7 +9,6 @@
 
 #include <kernel/spinlock.h>
 #include <arch/common_op.h>
-#include <lib/interrupts.h>
 #include <stdio.h>
 
 void

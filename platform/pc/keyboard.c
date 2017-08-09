@@ -8,9 +8,9 @@
 \* ------------------------------------------------------------------------ */
 
 #include <kernel/init.h>
+#include <kernel/interrupts.h>
 #include <arch/x86/asm.h>
 #include <platform/pc/keyboard.h>
-#include <lib/interrupts.h>
 #include <stdio.h>
 
 /*
