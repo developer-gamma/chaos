@@ -24,18 +24,9 @@ tss_setup(void)
 	base = (uintptr)&tss;
 	limit = (uintptr)sizeof(tss);
 
-	memset(&gdt_tss_entry, 0, sizeof(gdt_tss_entry));
-
 	gdt_tss_entry.limit_low = limit & 0xFFFF;
 	gdt_tss_entry.base_low = base & 0xFFFFFF;
-	gdt_tss_entry._one = 1;
-	gdt_tss_entry.busy = 0;
-	gdt_tss_entry.type = 2;
-	gdt_tss_entry.dpl = 3;
-	gdt_tss_entry.present = 1;
 	gdt_tss_entry.limit_high = (limit & 0x0F0000) >> 16u;
-	gdt_tss_entry.available = 0;
-	gdt_tss_entry.granularity = 0;
 	gdt_tss_entry.base_high = (base & 0xFF000000) >> 24u;
 
 	memset(&tss, 0, sizeof(tss));
