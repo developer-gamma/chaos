@@ -70,7 +70,7 @@ status_t		arch_map_page(virt_addr_t va);
 /*
 ** Unmaps a virtual address.
 */
-void			arch_munmap(virt_addr_t va, size_t size);
+void			arch_munmap_va(virt_addr_t va);
 
 /*
 ** Initialises the arch-dependent stuff of virtual memory management.
@@ -78,6 +78,7 @@ void			arch_munmap(virt_addr_t va, size_t size);
 void			arch_vmm_init(void);
 
 virt_addr_t		mmap(virt_addr_t va, size_t size);
+void			munmap(virt_addr_t va, size_t size);
 status_t		kbrk(virt_addr_t new_brk);
 virt_addr_t		ksbrk(intptr);
 status_t		ubrk(virt_addr_t new_brk);

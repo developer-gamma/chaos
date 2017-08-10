@@ -45,7 +45,7 @@ arch_map_virt_to_phys(virt_addr_t va, phys_addr_t pa)
 	if (pte->present)
 	{
 		if (allocated_pde) {
-			arch_munmap(pt, PAGE_SIZE);
+			munmap(pt, PAGE_SIZE);
 		}
 		return (ERR_ALREADY_MAPPED);
 	}
@@ -81,26 +81,18 @@ arch_map_page(virt_addr_t va)
 }
 
 void
-arch_munmap(virt_addr_t va, size_t size)
+arch_munmap_va(virt_addr_t va)
 {
-	virt_addr_t ori_va;
 	struct pagedir_entry *pde;
 	struct pagetable_entry *pte;
 
-	assert(IS_PAGE_ALIGNED(va));
-	assert(IS_PAGE_ALIGNED(size));
-	ori_va = va;
-	while (va < ori_va + size)
+	pde = GET_PAGE_DIRECTORY->entries + GET_PD_IDX(va);
+	pte = GET_PAGE_TABLE(GET_PD_IDX(va))->entries + GET_PT_IDX(va);
+	if (pde->present && pte->present)
 	{
-		pde = GET_PAGE_DIRECTORY->entries + GET_PD_IDX(va);
-		pte = GET_PAGE_TABLE(GET_PD_IDX(va))->entries + GET_PT_IDX(va);
-		if (pde->present && pte->present)
-		{
-			free_frame(pte->frame << 12u);
-			pte->value = 0;
-			invlpg(va);
-		}
-		va += PAGE_SIZE;
+		free_frame(pte->frame << 12u);
+		pte->value = 0;
+		invlpg(va);
 	}
 }
 
@@ -216,7 +208,7 @@ vmm_test(void)
 	assert_eq(arch_map_page((virt_addr_t)0xDEADB000), ERR_ALREADY_MAPPED);
 
 	/* munmap */
-	arch_munmap((virt_addr_t)0xDEADB000, PAGE_SIZE);
+	munmap((virt_addr_t)0xDEADB000, PAGE_SIZE);
 	assert(!arch_is_allocated((virt_addr_t)0xDEADB000));
 
 	/* mmap */
@@ -238,7 +230,7 @@ vmm_test(void)
 	assert(!arch_is_allocated((virt_addr_t)0xDEADD000));
 
 	/* sized munmap */
-	arch_munmap((virt_addr_t)0xDEADA000, 3 * PAGE_SIZE);
+	munmap((virt_addr_t)0xDEADA000, 3 * PAGE_SIZE);
 	assert(!arch_is_allocated((virt_addr_t)0xDEAD9000));
 	assert(!arch_is_allocated((virt_addr_t)0xDEADA000));
 	assert(!arch_is_allocated((virt_addr_t)0xDEADB000));
@@ -312,7 +304,7 @@ vmm_test(void)
 	assert(arch_is_allocated(mmap2 + 9 * PAGE_SIZE));
 	assert(arch_is_allocated(mmap2 + 10 * PAGE_SIZE));
 	assert_eq(get_current_thread()->vaspace->mmapping_size, 11 * PAGE_SIZE);
-	arch_munmap(mmap2, 11 * PAGE_SIZE);
+	munmap(mmap2, 11 * PAGE_SIZE);
 	get_current_thread()->vaspace->mmapping_size = 0;
 }
 

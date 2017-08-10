@@ -62,7 +62,7 @@ mmap(virt_addr_t va, size_t size)
 		while (va < ori_va + size)
 		{
 			if (unlikely(arch_map_page(va) != OK)) {
-				arch_munmap(ori_va, va - ori_va);
+				munmap(ori_va, va - ori_va);
 				goto err_ret;
 			}
 			va += PAGE_SIZE;
@@ -77,6 +77,24 @@ ok_ret:
 err_ret:
 	RELEASE_VASPACE(state);
 	return (NULL);
+}
+
+/*
+** Unmaps 'size' contiguous pages of virtual addresses, starting at va.
+*/
+void
+munmap(virt_addr_t va, size_t size)
+{
+	virt_addr_t ori_va;
+
+	assert(IS_PAGE_ALIGNED(va));
+	assert(IS_PAGE_ALIGNED(size));
+	ori_va = va;
+	while (va < ori_va + size)
+	{
+		arch_munmap_va(va);
+		va += PAGE_SIZE;
+	}
 }
 
 /*
@@ -108,7 +126,7 @@ kbrk(virt_addr_t new_brk)
 			}
 		}
 		else if (round_add < 0) {
-			arch_munmap(brk + round_add + PAGE_SIZE, -round_add);
+			munmap(brk + round_add + PAGE_SIZE, -round_add);
 		}
 		return (OK);
 	}
@@ -164,7 +182,7 @@ ubrk(virt_addr_t new_brk)
 			}
 		}
 		else if (round_add < 0) {
-			arch_munmap(brk + round_add + PAGE_SIZE, -round_add);
+			munmap(brk + round_add + PAGE_SIZE, -round_add);
 		}
 		RELEASE_VASPACE(state);
 		return (OK);
