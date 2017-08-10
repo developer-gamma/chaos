@@ -7,8 +7,8 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#ifndef _KERNEL_ALLOC_H_
-# define _KERNEL_ALLOC_H_
+#ifndef _KERNEL_KALLOC_H_
+# define _KERNEL_KALLOC_H_
 
 # include <kernel/vmm.h>
 # include <kernel/spinlock.h>
@@ -38,4 +38,4 @@ static_assert(sizeof(struct block) % sizeof(void *) == 0);
 # define LOCK_KHEAP(state)	LOCK(&kernel_heap_lock, state)
 # define RELEASE_KHEAP(state)	RELEASE(&kernel_heap_lock, state)
 
-#endif /* !_KERNEL_ALLOC_H_ */
+#endif /* !_KERNEL_KALLOC_H_ */

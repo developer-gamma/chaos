@@ -12,7 +12,6 @@
 */
 
 #include <kernel/init.h>
-#include <kernel/unit-tests.h>
 #include <kernel/vmm.h>
 #include <kernel/thread.h>
 #include <kernel/interrupts.h>
@@ -22,37 +21,6 @@
 /* Heap main variables */
 virt_addr_t kernel_heap_start;
 size_t kernel_heap_size;
-
-/*
-** Maps a physical address to a virtual one.
-**
-** Weak symbol, should be re-implemented for each supported architecture.
-*/
-__weak status_t
-map_virt_to_phys(virt_addr_t va __unused, phys_addr_t pa __unused)
-{
-	return (ERR_NOT_IMPLEMENTED);
-}
-
-/*
-** Maps random physical addresses to the given virtual address.
-**
-** Weak symbol, should be re-implemented for each supported architecture.
-*/
-__weak status_t
-map_page(virt_addr_t va __unused)
-{
-	return (ERR_NOT_IMPLEMENTED);
-}
-
-/*
-** Unmaps a virtual address.
-**
-** Weak symbol, should be re-implemented for each supported architecture.
-*/
-__weak void
-munmap(virt_addr_t va __unused, size_t s __unused)
-{}
 
 /*
 ** Map contiguous virtual addresses to a random physical addresses.
@@ -93,8 +61,8 @@ mmap(virt_addr_t va, size_t size)
 	{
 		while (va < ori_va + size)
 		{
-			if (unlikely(map_page(va) != OK)) {
-				munmap(ori_va, va - ori_va);
+			if (unlikely(arch_map_page(va) != OK)) {
+				arch_munmap(ori_va, va - ori_va);
 				goto err_ret;
 			}
 			va += PAGE_SIZE;
@@ -140,7 +108,7 @@ kbrk(virt_addr_t new_brk)
 			}
 		}
 		else if (round_add < 0) {
-			munmap(brk + round_add + PAGE_SIZE, -round_add);
+			arch_munmap(brk + round_add + PAGE_SIZE, -round_add);
 		}
 		return (OK);
 	}
@@ -167,18 +135,18 @@ ksbrk(intptr inc)
 
 /*
 ** Sets the new end of user heap.
-** Marked as naked: doesn't lock the virtual address space.
 **
 ** TODO Make this function safer (overflow, bounds)
 */
-static status_t
-ubrk_naked(virt_addr_t new_brk)
+status_t
+ubrk(virt_addr_t new_brk)
 {
 	virt_addr_t brk;
 	intptr add;
 	intptr round_add;
 	struct vaspace *vaspace;
 
+	LOCK_VASPACE(state);
 	vaspace = get_current_thread()->vaspace;
 	if (new_brk >= vaspace->heap_start)
 	{
@@ -191,31 +159,18 @@ ubrk_naked(virt_addr_t new_brk)
 		{
 			if (unlikely(mmap(brk + PAGE_SIZE, round_add) == NULL)) {
 				vaspace->heap_size -= add;
+				RELEASE_VASPACE(state);
 				return (ERR_NO_MEMORY);
 			}
 		}
 		else if (round_add < 0) {
-			munmap(brk + round_add + PAGE_SIZE, -round_add);
+			arch_munmap(brk + round_add + PAGE_SIZE, -round_add);
 		}
+		RELEASE_VASPACE(state);
 		return (OK);
 	}
-	return (ERR_INVALID_ARGS);
-}
-
-/*
-** Sets the new end of user heap.
-**
-** TODO Make this function safer (overflow, bounds)
-*/
-status_t
-ubrk(virt_addr_t new_brk)
-{
-	status_t ret;
-
-	LOCK_VASPACE(state);
-	ret = ubrk_naked(new_brk);
 	RELEASE_VASPACE(state);
-	return (ret);
+	return (ERR_INVALID_ARGS);
 }
 
 /*
@@ -231,25 +186,13 @@ usbrk(intptr inc)
 	vaspace = get_current_thread()->vaspace;
 	LOCK_VASPACE(state);
 	old_brk = vaspace->heap_start + vaspace->heap_size;
-	if (ubrk_naked(vaspace->heap_start + vaspace->heap_size + inc) == OK) {
+	if (ubrk(vaspace->heap_start + vaspace->heap_size + inc) == OK) {
 		RELEASE_VASPACE(state);
 		return (old_brk);
 	}
 	RELEASE_VASPACE(state);
 	return ((virt_addr_t)-1u);
 }
-
-/*
-** Initialises the arch-dependent stuff of virtual memory management.
-**
-** Weak symbol, could be re-implemented for each supported architecture.
-*/
-__weak void
-arch_vmm_init(void)
-{}
-
-/* Defined in kernel/thread.c */
-extern struct vaspace default_vaspace;
 
 /*
 ** Initalises the arch-independant stuff of virtual memory management.
@@ -267,15 +210,13 @@ vmm_init(enum init_level il __unused)
 	/* Allocate the first heap page or the kbrk algorithm will not work. */
 	assert_neq(mmap(kernel_heap_start, PAGE_SIZE), NULL);
 
+	/* Defined in kernel/thread.c */
+	extern struct vaspace default_vaspace;
+
 	/* Allocate the first heap page of boot thread the ubrk algorithm will not work. */
 	assert_neq(mmap(default_vaspace.heap_start, PAGE_SIZE), NULL);
 
 	printf("[OK]\tVirtual Memory Management\n");
 }
 
-__weak void
-vmm_test(void)
-{}
-
 NEW_INIT_HOOK(vmm, &vmm_init, CHAOS_INIT_LEVEL_VMM);
-NEW_UNIT_TEST(vmm, &vmm_test, UNIT_TEST_LEVEL_VMM);

@@ -7,6 +7,7 @@
 **
 \* ------------------------------------------------------------------------ */
 
+#include <kernel/unit-tests.h>
 #include <kernel/thread.h>
 #include <arch/x86/asm.h>
 #include <arch/x86/vmm.h>
@@ -14,7 +15,7 @@
 #include <string.h>
 
 status_t
-map_virt_to_phys(virt_addr_t va, phys_addr_t pa)
+arch_map_virt_to_phys(virt_addr_t va, phys_addr_t pa)
 {
 	struct pagedir_entry *pde;
 	struct pagetable_entry *pte;
@@ -44,7 +45,7 @@ map_virt_to_phys(virt_addr_t va, phys_addr_t pa)
 	if (pte->present)
 	{
 		if (allocated_pde) {
-			munmap(pt, PAGE_SIZE);
+			arch_munmap(pt, PAGE_SIZE);
 		}
 		return (ERR_ALREADY_MAPPED);
 	}
@@ -61,7 +62,7 @@ map_virt_to_phys(virt_addr_t va, phys_addr_t pa)
 }
 
 status_t
-map_page(virt_addr_t va)
+arch_map_page(virt_addr_t va)
 {
 	phys_addr_t pa;
 	status_t s;
@@ -69,7 +70,7 @@ map_page(virt_addr_t va)
 	pa = alloc_frame();
 	if (pa != NULL_FRAME)
 	{
-		s = map_virt_to_phys(va, pa);
+		s = arch_map_virt_to_phys(va, pa);
 		if (s == OK) {
 			return (OK);
 		}
@@ -80,7 +81,7 @@ map_page(virt_addr_t va)
 }
 
 void
-munmap(virt_addr_t va, size_t size)
+arch_munmap(virt_addr_t va, size_t size)
 {
 	virt_addr_t ori_va;
 	struct pagedir_entry *pde;
@@ -103,14 +104,14 @@ munmap(virt_addr_t va, size_t size)
 	}
 }
 
-/* Defined in kernel/thread.c */
-extern struct vaspace default_vaspace;
-
 void
 arch_vmm_init(void)
 {
 	size_t i;
 	status_t s;
+
+	/* Defined in kernel/thread.c */
+	extern struct vaspace default_vaspace;
 
 	i = GET_PD_IDX(KERNEL_VIRTUAL_BASE);
 	default_vaspace.arch.pagedir = get_cr3();
@@ -118,7 +119,7 @@ arch_vmm_init(void)
 	/* Allocates all kernel page tables, so that each future processes share kernel memory. */
 	while (i < 1023)
 	{
-		s = map_page(GET_PAGE_TABLE(i));
+		s = arch_map_page(GET_PAGE_TABLE(i));
 		assert(s == OK || s == ERR_ALREADY_MAPPED);
 		++i;
 	}
@@ -131,7 +132,7 @@ arch_vmm_init(void)
 ** Only used for debugging.
 */
 __unused void
-x86_print_mem_state(void)
+arch_dump_mem(void)
 {
 	uint i;
 	uint j;
@@ -181,8 +182,8 @@ x86_print_mem_state(void)
 	}
 }
 
-static bool
-is_allocated(virt_addr_t va)
+bool
+arch_is_allocated(virt_addr_t va)
 {
 	struct pagedir_entry *pde;
 	struct pagetable_entry *pte;
@@ -193,105 +194,106 @@ is_allocated(virt_addr_t va)
 	return (pde->present && pte->present);
 }
 
-extern virt_addr_t kernel_heap_start;
-extern size_t kernel_heap_size;
-
-void
+static void
 vmm_test(void)
 {
 	virt_addr_t brk;
 	virt_addr_t mmap1;
 	virt_addr_t mmap2;
 
-	assert(!is_allocated((virt_addr_t)0xDEADB000));
-	assert_eq(map_page((virt_addr_t)0xDEADB000), OK);
-	assert(is_allocated((virt_addr_t)0xDEADB000));
-	assert(!is_allocated((virt_addr_t)0xDEADA000));
-	assert(!is_allocated((virt_addr_t)0xDEADC000));
+	/* Defined in kernel/kalloc.c */
+	extern virt_addr_t kernel_heap_start;
+	extern size_t kernel_heap_size;
+
+	assert(!arch_is_allocated((virt_addr_t)0xDEADB000));
+	assert_eq(arch_map_page((virt_addr_t)0xDEADB000), OK);
+	assert(arch_is_allocated((virt_addr_t)0xDEADB000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEADA000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEADC000));
 	assert_eq(*(char *)0xDEADB000, 42);
 	*(char *)0xDEADB000 = 43;
 	assert_eq(*(char *)0xDEADB000, 43);
-	assert_eq(map_page((virt_addr_t)0xDEADB000), ERR_ALREADY_MAPPED);
+	assert_eq(arch_map_page((virt_addr_t)0xDEADB000), ERR_ALREADY_MAPPED);
 
-	/* Munmap */
-	munmap((virt_addr_t)0xDEADB000, PAGE_SIZE);
-	assert(!is_allocated((virt_addr_t)0xDEADB000));
+	/* munmap */
+	arch_munmap((virt_addr_t)0xDEADB000, PAGE_SIZE);
+	assert(!arch_is_allocated((virt_addr_t)0xDEADB000));
 
-	/* Mmap */
+	/* mmap */
 	assert_eq(mmap((virt_addr_t)0xDEADA000, 3 * PAGE_SIZE), (virt_addr_t)0xDEADA000);
-	assert(!is_allocated((virt_addr_t)0xDEAD9000));
-	assert(is_allocated((virt_addr_t)0xDEADA000));
-	assert(is_allocated((virt_addr_t)0xDEADB000));
-	assert(is_allocated((virt_addr_t)0xDEADC000));
-	assert(!is_allocated((virt_addr_t)0xDEADD000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEAD9000));
+	assert(arch_is_allocated((virt_addr_t)0xDEADA000));
+	assert(arch_is_allocated((virt_addr_t)0xDEADB000));
+	assert(arch_is_allocated((virt_addr_t)0xDEADC000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEADD000));
 
-	/* Overlapping mmap */
+	/* overlapping mmap */
 	assert_eq(mmap((virt_addr_t)0xDEAD8000, 5 * PAGE_SIZE), NULL);
-	assert(!is_allocated((virt_addr_t)0xDEAD7000));
-	assert(!is_allocated((virt_addr_t)0xDEAD8000));
-	assert(!is_allocated((virt_addr_t)0xDEAD9000));
-	assert(is_allocated((virt_addr_t)0xDEADA000));
-	assert(is_allocated((virt_addr_t)0xDEADB000));
-	assert(is_allocated((virt_addr_t)0xDEADC000));
-	assert(!is_allocated((virt_addr_t)0xDEADD000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEAD7000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEAD8000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEAD9000));
+	assert(arch_is_allocated((virt_addr_t)0xDEADA000));
+	assert(arch_is_allocated((virt_addr_t)0xDEADB000));
+	assert(arch_is_allocated((virt_addr_t)0xDEADC000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEADD000));
 
-	/* Sized munmap */
-	munmap((virt_addr_t)0xDEADA000, 3 * PAGE_SIZE);
-	assert(!is_allocated((virt_addr_t)0xDEAD9000));
-	assert(!is_allocated((virt_addr_t)0xDEADA000));
-	assert(!is_allocated((virt_addr_t)0xDEADB000));
-	assert(!is_allocated((virt_addr_t)0xDEADC000));
-	assert(!is_allocated((virt_addr_t)0xDEADD000));
+	/* sized munmap */
+	arch_munmap((virt_addr_t)0xDEADA000, 3 * PAGE_SIZE);
+	assert(!arch_is_allocated((virt_addr_t)0xDEAD9000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEADA000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEADB000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEADC000));
+	assert(!arch_is_allocated((virt_addr_t)0xDEADD000));
 
 	/* tiny ksbrk tests */
 	brk = ksbrk(0);
-	assert(is_allocated(brk));
+	assert(arch_is_allocated(brk));
 	assert_eq(brk, kernel_heap_start);
 	assert_eq(kernel_heap_size, 0);
 	ksbrk(0);
-	assert(is_allocated(brk));
+	assert(arch_is_allocated(brk));
 	assert_eq(kernel_heap_size, 0);
 	assert_eq(ksbrk(-1), (virt_addr_t)-1u);
 	assert_eq(ksbrk(0), brk);
 	ksbrk(1);
-	assert(is_allocated(brk));
+	assert(arch_is_allocated(brk));
 	assert_eq(ksbrk(0), brk + 1);
 	assert_eq(kernel_heap_size, 1);
 	ksbrk(-1);
-	assert(is_allocated(brk));
+	assert(arch_is_allocated(brk));
 	assert_eq(kernel_heap_size, 0);
 	assert_eq(ksbrk(0), brk);
 
 	/* medium ksbrk tests */
 	assert_eq(ksbrk(PAGE_SIZE), brk);
 	assert_eq(kernel_heap_size, PAGE_SIZE);
-	assert(is_allocated(brk));
-	assert(is_allocated(brk + PAGE_SIZE));
-	assert(is_allocated(ksbrk(0)));
+	assert(arch_is_allocated(brk));
+	assert(arch_is_allocated(brk + PAGE_SIZE));
+	assert(arch_is_allocated(ksbrk(0)));
 	assert_eq(ksbrk(-PAGE_SIZE), brk + PAGE_SIZE);
 	assert_eq(kernel_heap_size, 0);
-	assert(is_allocated(brk));
-	assert(!is_allocated(brk + PAGE_SIZE));
-	assert(is_allocated(ksbrk(0)));
+	assert(arch_is_allocated(brk));
+	assert(!arch_is_allocated(brk + PAGE_SIZE));
+	assert(arch_is_allocated(ksbrk(0)));
 	assert_eq(ksbrk(0), brk);
 
 	/* huge ksbrk tests */
 	assert_eq(ksbrk(10 * PAGE_SIZE), brk);
-	assert(is_allocated(brk));
-	assert(is_allocated(brk + 5 * PAGE_SIZE));
-	assert(is_allocated(brk + 10 * PAGE_SIZE));
-	assert(!is_allocated(brk + 11 * PAGE_SIZE));
+	assert(arch_is_allocated(brk));
+	assert(arch_is_allocated(brk + 5 * PAGE_SIZE));
+	assert(arch_is_allocated(brk + 10 * PAGE_SIZE));
+	assert(!arch_is_allocated(brk + 11 * PAGE_SIZE));
 	assert_eq(ksbrk(0), brk + 10 * PAGE_SIZE);
 	assert_eq(ksbrk(-5 * PAGE_SIZE), brk + 10 * PAGE_SIZE);
 	assert_eq(ksbrk(0), brk + 5 * PAGE_SIZE);
 	assert_eq(kernel_heap_size, 5 * PAGE_SIZE);
-	assert(is_allocated(brk + 5 * PAGE_SIZE));
-	assert(!is_allocated(brk + 6 * PAGE_SIZE));
+	assert(arch_is_allocated(brk + 5 * PAGE_SIZE));
+	assert(!arch_is_allocated(brk + 6 * PAGE_SIZE));
 	assert_eq(ksbrk(-5 * PAGE_SIZE), brk + 5 * PAGE_SIZE);
 	assert_eq(ksbrk(0), brk);
 	assert_eq(kernel_heap_size, 0);
-	assert(!is_allocated(brk + 5 * PAGE_SIZE));
-	assert(is_allocated(brk));
+	assert(!arch_is_allocated(brk + 5 * PAGE_SIZE));
+	assert(arch_is_allocated(brk));
 
 	/* tricky kbrk tests */
 	assert_eq(kbrk(NULL), ERR_INVALID_ARGS);
@@ -301,16 +303,17 @@ vmm_test(void)
 	/* NULL mmap tests */
 	mmap1 = mmap(NULL, PAGE_SIZE);
 	assert_neq(mmap1, NULL);
-	assert(is_allocated(mmap1));
+	assert(arch_is_allocated(mmap1));
 	assert(IS_PAGE_ALIGNED(mmap1));
 	mmap2 = mmap(NULL, 10 * PAGE_SIZE);
 	assert_neq(mmap2, NULL);
-	assert(is_allocated(mmap1));
-	assert(is_allocated(mmap2));
-	assert(is_allocated(mmap2 + 9 * PAGE_SIZE));
-	assert(is_allocated(mmap2 + 10 * PAGE_SIZE));
+	assert(arch_is_allocated(mmap1));
+	assert(arch_is_allocated(mmap2));
+	assert(arch_is_allocated(mmap2 + 9 * PAGE_SIZE));
+	assert(arch_is_allocated(mmap2 + 10 * PAGE_SIZE));
 	assert_eq(get_current_thread()->vaspace->mmapping_size, 11 * PAGE_SIZE);
-	munmap(mmap2, 11 * PAGE_SIZE);
+	arch_munmap(mmap2, 11 * PAGE_SIZE);
 	get_current_thread()->vaspace->mmapping_size = 0;
 }
 
+NEW_UNIT_TEST(vmm, &vmm_test, UNIT_TEST_LEVEL_VMM);

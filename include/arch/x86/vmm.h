@@ -69,8 +69,7 @@ struct			pagetable_entry
 };
 
 /*
-** A page table.
-** It's composed of 1024 entries.
+** A page table, composed of 1024 entries.
 */
 struct			page_table
 {
@@ -78,8 +77,7 @@ struct			page_table
 };
 
 /*
-** A page directory.
-** It's composed of 1024 entries.
+** A page directory, composed of 1024 entries.
 */
 struct			page_dir
 {

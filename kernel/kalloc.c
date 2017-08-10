@@ -7,7 +7,7 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#include <kernel/alloc.h>
+#include <kernel/kalloc.h>
 #include <kernel/spinlock.h>
 #include <kernel/init.h>
 #include <stdio.h>
