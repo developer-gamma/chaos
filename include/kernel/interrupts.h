@@ -35,12 +35,12 @@ enum handler_return	handle_interrupt(uint vector);
 /*
 ** All these functions should be reimplemented on every supported architecture.
 */
-status_t		mask_interrupt(uint v);
-status_t		unmask_interrupt(uint v);
-void			enable_interrupts(void);
-void			disable_interrupts(void);
-void			push_interrupts(int_state_t *);
-void			pop_interrupts(int_state_t *);
-bool			are_int_enabled(void);
+status_t		arch_mask_interrupt(uint v);
+status_t		arch_unmask_interrupt(uint v);
+void			arch_enable_interrupts(void);
+void			arch_disable_interrupts(void);
+void			arch_push_interrupts(int_state_t *);
+void			arch_pop_interrupts(int_state_t *);
+bool			arch_are_int_enabled(void);
 
 #endif /* !_LIB_INTERRUPTS_H_ */

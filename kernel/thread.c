@@ -154,7 +154,7 @@ thread_init(void)
 {
 	struct thread *t;
 
-	assert(!are_int_enabled());
+	assert(!arch_are_int_enabled());
 
 	/* Create the init thread */
 	t = thread_create("init", &init_routine, DEFAULT_STACK_SIZE);
@@ -168,7 +168,7 @@ thread_init(void)
 	printf("\nWelcome to ChaOS\n\n");
 
 	/* Enable interrupts (hurrah!) */
-	enable_interrupts();
+	arch_enable_interrupts();
 
 	LOCK_THREAD(state);
 

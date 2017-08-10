@@ -110,7 +110,7 @@ kbrk(virt_addr_t new_brk)
 	intptr add;
 	intptr round_add;
 
-	assert(!are_int_enabled());
+	assert(!arch_are_int_enabled());
 	if (new_brk >= kernel_heap_start)
 	{
 		add = new_brk - (kernel_heap_start + kernel_heap_size);

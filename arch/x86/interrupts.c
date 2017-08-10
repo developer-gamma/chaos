@@ -88,45 +88,45 @@ idt_set_vector(uint8 vec, uintptr callback, uint16 sel, enum dpl dpl, enum idt_e
 */
 
 status_t
-mask_interrupt(uint vector)
+arch_mask_interrupt(uint vector)
 {
 	idt_set_present(idt + vector, false);
 	return (OK);
 }
 
 status_t
-unmask_interrupt(uint vector)
+arch_unmask_interrupt(uint vector)
 {
 	idt_set_present(idt + vector, true);
 	return (OK);
 }
 
 void
-enable_interrupts(void)
+arch_enable_interrupts(void)
 {
 	sti();
 }
 
 void
-disable_interrupts(void)
+arch_disable_interrupts(void)
 {
 	cli();
 }
 
 void
-push_interrupts(int_state_t *save)
+arch_push_interrupts(int_state_t *save)
 {
 	*save = get_eflags();
 }
 
 void
-pop_interrupts(int_state_t *save)
+arch_pop_interrupts(int_state_t *save)
 {
 	set_eflags(*save);
 }
 
 bool
-are_int_enabled(void)
+arch_are_int_enabled(void)
 {
 	uint eflags;
 

@@ -57,7 +57,7 @@ thread_reschedule(void)
 	struct thread *new;
 	struct thread *old;
 
-	assert(!are_int_enabled());
+	assert(!arch_are_int_enabled());
 	assert(holding_lock(&thread_table_lock));
 
 	old = get_current_thread();

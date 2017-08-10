@@ -29,7 +29,7 @@ panic(const char *fmt, ...)
 	va_list va;
 	void *ptr;
 
-	disable_interrupts();
+	arch_disable_interrupts();
 	va_start(va, fmt);
 	printf("\nKernel panicked: ");
 	vprintf(fmt, va);

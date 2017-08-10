@@ -25,12 +25,12 @@ void			release_lock(struct spinlock *);
 
 # define		LOCK(lock, state)		\
 	int_state_t state;				\
-	push_interrupts(&state);			\
-	disable_interrupts();				\
+	arch_push_interrupts(&state);			\
+	arch_disable_interrupts();			\
 	acquire_lock(lock);
 
 # define		RELEASE(lock, state)		\
 	release_lock(lock);				\
-	pop_interrupts(&state);
+	arch_pop_interrupts(&state);
 
 #endif /* !_KERNEL_SPINLOCK_H_ */

@@ -32,7 +32,7 @@ thread_main(void)
 	extern void *int_kernel_stack_top;
 	set_kernel_stack((uintptr)&int_kernel_stack_top);
 
-	enable_interrupts();
+	arch_enable_interrupts();
 
 	/* User mode, never returns. still a WIP */
 	//x86_jump_usermode(current_thread->entry);
