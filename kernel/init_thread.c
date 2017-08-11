@@ -15,7 +15,7 @@ extern int (shell_main)(void);
 ** The first thread launched by the kernel when it has finish booting.
 ** TODO make this user space
 */
-void
+int
 init_routine(void)
 {
 	/*
@@ -23,5 +23,6 @@ init_routine(void)
 	** As execve() isn't implemented yet, i'm directly calling the main of the shell program.
 	*/
 	shell_main();
+	return (0);
 }
 

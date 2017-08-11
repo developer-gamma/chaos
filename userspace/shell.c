@@ -147,12 +147,12 @@ struct cmd
 {
 	char const *name;
 	char const *desc;
-	void (*func)(void);
+	int (*func)(void);
 };
 
 static struct cmd cmds[];
 
-static void
+static int
 exec_help(void)
 {
 	struct cmd *cmd;
@@ -168,17 +168,29 @@ exec_help(void)
 		putc('\n');
 		++cmd;
 	}
+	return (0);
 }
 
-static void
+static int
 exec_ls(void)
 {
 	puts("file1\tfile2\tfile3\n");
+	return (0);
 }
+
+__attribute__((optimize("O0")))
+static int
+exec_sigsev(void)
+{
+	*(char *)0xDEADBEEF = 'a';
+	return (0);
+}
+
 static struct cmd cmds[] =
 {
 	{"help", "print the help", &exec_help},
 	{"ls", "list filesystem", &exec_ls},
+	{"sigsev", "produces a segmentation fault", &exec_sigsev},
 
 	{NULL, NULL, NULL},
 };
@@ -199,7 +211,9 @@ parse_command(char const *cmd)
 				c->func();
 				exit();
 			} else {
-				/* waitpid(pid) would go there */
+				if (waitpid(pid) == 139) {
+					puts("Segmentation Fault\n");
+				}
 			}
 			return ;
 		}

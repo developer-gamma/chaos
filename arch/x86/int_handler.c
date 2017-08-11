@@ -27,27 +27,14 @@ x86_breakpoint_handler(struct iframe *iframe)
 		"\tEIP: %p\n"
 		"\tESP: %p\n",
 		iframe->eip, iframe->esp);
-	return OK;
+	return (OK);
 }
 
 static status_t
-x86_pagefault_handler(struct iframe *iframe)
+x86_pagefault_handler(struct iframe *iframe __unused)
 {
-	uintptr addr;
-
-	addr = get_cr2();
-	panic("Page Fault at address %#p.\n"
-		"\tAddress: %#p\n"
-		"\tPresent: %y\n"
-		"\tWrite: %y\n"
-		"\tUser-mode: %y\n"
-		"\tReserved: %y\n",
-		iframe->eip,
-		(void *)addr,
-		(bool)((iframe->err_code ^ 0x1)),
-		(bool)((iframe->err_code & 0x2)),
-		(bool)((iframe->err_code & 0x4)),
-		(bool)((iframe->err_code & 0x8)));
+	thread_exit(139); /* Quick way to notify parents the thread segfaulted */
+	return (OK);
 }
 
 /*
@@ -149,7 +136,7 @@ x86_syscalls_handler(struct iframe *iframe)
 	switch (iframe->eax)
 	{
 		case EXIT:
-			thread_exit();
+			thread_exit(iframe->edi);
 			break;
 		case FORK:
 			iframe->eax = sys_fork();
@@ -168,6 +155,9 @@ x86_syscalls_handler(struct iframe *iframe)
 			break;
 		case GETPID:
 			iframe->eax = get_current_thread()->pid;
+			break;
+		case WAITPID:
+			iframe->eax = thread_waitpid(iframe->edi);
 			break;
 		default:
 			panic("Unknown syscall %p\n", iframe->eax);

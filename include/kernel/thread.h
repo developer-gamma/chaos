@@ -18,7 +18,7 @@
 # define IRQ_TIMER_VECTOR	(0x0)
 
 typedef int			pid_t;
-typedef void			(*thread_entry_cb)(void);
+typedef int			(*thread_entry_cb)(void);
 
 enum			thread_state
 {
@@ -44,6 +44,7 @@ struct			thread
 	/* Thread basic infos*/
 	char name[255];
 	pid_t pid;
+	uchar exit_status;
 	enum thread_state state;
 	struct thread *parent;
 
@@ -63,6 +64,7 @@ struct			thread
 
 void			thread_init(void);
 void			thread_early_init(void);
+int			init_routine(void);
 
 struct thread		*thread_fork(void);
 struct thread		*thread_create(char const *name, thread_entry_cb entry, size_t stack_size);
@@ -70,9 +72,9 @@ void			thread_dump(void);
 void			thread_yield(void);
 void			thread_reschedule(void);
 void			thread_resume(struct thread *);
-void			thread_exit(void);
+void			thread_exit(int);
+int			thread_waitpid(pid_t);
 enum handler_return	irq_timer_handler(void);
-void			init_routine(void);
 
 /* Must be implemented in each architecture */
 void			set_current_thread(struct thread *);
@@ -81,6 +83,8 @@ void			arch_context_switch(struct thread *old, struct thread *new);
 void			arch_init_thread(struct thread *);
 void			arch_init_fork_thread(struct thread *new);
 struct vaspace		*arch_clone_vaspace(struct vaspace *src);
+void			arch_thread_exit();
+void			arch_cleanup_thread(struct thread *t);
 
 # define LOCK_THREAD(state)	LOCK(&thread_table_lock, state)
 # define RELEASE_THREAD(state)	RELEASE(&thread_table_lock, state)

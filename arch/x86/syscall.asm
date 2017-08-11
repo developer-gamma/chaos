@@ -46,3 +46,4 @@ SYSCALL			0x4,			read
 SYSCALL			0x5,			brk
 SYSCALL			0x6,			sbrk
 SYSCALL			0x7,			getpid
+SYSCALL			0x8,			waitpid

@@ -155,7 +155,7 @@ err:
 ** Exit the current thread.
 */
 void
-thread_exit(void)
+thread_exit(int status)
 {
 	struct thread *t;
 
@@ -170,9 +170,10 @@ thread_exit(void)
 	}
 
 	t->vaspace->ref_count--;
-	/* TODO free thread's memory space and kernel stack */
+	arch_thread_exit();
 
-	t->state = NONE; /* TODO change this in ZOMBIE */
+	t->exit_status = status & 0xFFu;
+	t->state = ZOMBIE;
 	next_pid = t->pid;
 	thread_reschedule();
 
@@ -195,6 +196,32 @@ thread_resume(struct thread *t)
 	}
 	else
 		RELEASE_THREAD(state);
+}
+
+/*
+** Waits for the process with the given pid to finish.
+** Returns the exit status of the targeted process.
+*/
+int
+thread_waitpid(pid_t pid)
+{
+	struct thread *t;
+	int val;
+
+	t = thread_table + pid;
+	assert(arch_are_int_enabled());
+
+	while (42) { /* TODO This is unsafe, a wakeup() approach is safer */
+		LOCK_THREAD(state);
+		if (t->state == ZOMBIE) {
+			arch_cleanup_thread(t);
+			val = t->exit_status;
+			t->state = SUSPENDED;
+			RELEASE_THREAD(state);
+			return (val);
+		}
+		RELEASE_THREAD(state);
+	}
 }
 
 /*

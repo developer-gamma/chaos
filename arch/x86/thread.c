@@ -24,21 +24,23 @@ extern struct spinlock thread_table_lock;
 static void
 thread_main(void)
 {
-	/* Release the lock acquired in the thread_yield() that brought us here. */
+	/* Release the lock acquired by the thread_yield() that brought us here. */
 	release_lock(&thread_table_lock);
 	arch_enable_interrupts();
 
 	/* User mode, never returns. still a WIP */
 	//x86_jump_userspace(current_thread->entry);
 
-	current_thread->entry();
-	thread_exit();
+	thread_exit(current_thread->entry());
 }
 
+/*
+** Very first entry point of a child thread after a fork. Returns from the fork.
+*/
 static void
 thread_return_fork()
 {
-	/* Release the lock acquired in the thread_yield() that brought us here. */
+	/* Release the lock acquired by the thread_yield() that brought us here. */
 	release_lock(&thread_table_lock);
 	arch_enable_interrupts();
 
@@ -91,7 +93,7 @@ arch_init_fork_thread(struct thread *t)
 	t->arch.iframe = t->arch.kernel_stack + ((uintptr)current_thread->arch.iframe - (uintptr)current_thread->arch.kernel_stack);
 
 	assert_eq(t->arch.iframe->eip, current_thread->arch.iframe->eip);
-	t->arch.iframe->eax = 0; /* Set fork returns for the new process */
+	t->arch.iframe->eax = 0; /* Set the return value of fork() for the new process */
 
 	frame = (struct context_switch_frame *)t->arch.iframe;
 	frame--;
@@ -101,6 +103,29 @@ arch_init_fork_thread(struct thread *t)
 	frame->eflags = FL_DEFAULT | FL_IOPL_3;
 	t->arch.sp = frame;
 
+}
+
+void
+arch_thread_exit(void)
+{
+	/* if no other thread held this memory space */
+	if (current_thread->vaspace->ref_count == 0)
+	{
+		/* radical way to clean up the memory space (okay, it may not be the best...) */
+		munmap(NULL, GET_PD_IDX(KERNEL_VIRTUAL_BASE) * 1024 * PAGE_SIZE);
+	}
+	/* kernel stack can't be free from exit(), so we'll free it from wait() */
+}
+
+/*
+** Called from thread_waitpid() when waiting a zombie thread.
+** Used to finish cleaning up this thread.
+*/
+void
+arch_cleanup_thread(struct thread *t)
+{
+	kfree(t->arch.kernel_stack);
+	t->arch.kernel_stack = NULL;
 }
 
 /*
@@ -175,7 +200,7 @@ arch_clone_vaspace(struct vaspace *src)
 	pa = get_paddr(pt);
 
 	i = 0;
-	while (i < 1024)
+	while (i < 1023)
 	{
 		pd->entries[i].value = GET_PAGE_DIRECTORY->entries[i].value;
 
@@ -194,7 +219,12 @@ arch_clone_vaspace(struct vaspace *src)
 		}
 		++i;
 	}
-	pd->entries[1023].frame = get_paddr(pd);
+
+	/* Set up recursiv mapping */
+	pd->entries[1023].value = 0;
+	pd->entries[1023].present = true;
+	pd->entries[1023].rw = true;
+	pd->entries[1023].frame = get_paddr(pd) >> 12u;
 
 	/* Set a new frame address for the page directory */
 	pa = alloc_frame();

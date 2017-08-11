@@ -25,5 +25,6 @@ ssize_t		read(int fd, void *buff, size_t count);
 int		brk(void *addr);
 void		*sbrk(intptr inc);
 pid_t		getpid(void);
+int		waitpid(pid_t);
 
 #endif /* !_UNISTD_H_ */

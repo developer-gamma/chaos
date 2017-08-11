@@ -19,7 +19,8 @@ enum syscalls_values
 	READ		= 4,
 	BRK		= 5,
 	SBRK		= 6,
-	GETPID		= 7
+	GETPID		= 7,
+	WAITPID		= 8,
 };
 
 static char const *const syscalls_str[] =
@@ -32,6 +33,7 @@ static char const *const syscalls_str[] =
 	[BRK]		= "BRK",
 	[SBRK]		= "SBRK",
 	[GETPID]	= "GETPID",
+	[WAITPID]	= "WAITPID",
 };
 
 #endif /* !_KERNEL_SYSCALL_H_ */
