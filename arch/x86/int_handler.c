@@ -33,7 +33,14 @@ x86_breakpoint_handler(struct iframe *iframe)
 static status_t
 x86_pagefault_handler(struct iframe *iframe __unused)
 {
-	thread_exit(139); /* Quick way to notify parents the thread segfaulted */
+	thread_exit(139); /* Boom, headshot! */
+	return (OK);
+}
+
+static status_t
+x86_gp_fault_handler(struct iframe *iframe __unused)
+{
+	thread_exit(139); /* Boom, headshot! */
 	return (OK);
 }
 
@@ -50,6 +57,9 @@ x86_exception_handler(struct iframe *iframe)
 		break;
 	case X86_INT_PAGE_FAULT:
 		x86_pagefault_handler(iframe);
+		break;
+	case X86_INT_GP_FAULT:
+		x86_gp_fault_handler(iframe);
 		break;
 	default:
 		x86_unhandled_exception(iframe);

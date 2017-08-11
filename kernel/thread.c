@@ -174,7 +174,6 @@ thread_exit(int status)
 
 	t->exit_status = status & 0xFFu;
 	t->state = ZOMBIE;
-	next_pid = t->pid;
 	thread_reschedule();
 
 	panic("Reached end of thread_exit()"); /* We shoudln't reach this portion of code. */
@@ -216,7 +215,8 @@ thread_waitpid(pid_t pid)
 		if (t->state == ZOMBIE) {
 			arch_cleanup_thread(t);
 			val = t->exit_status;
-			t->state = SUSPENDED;
+			t->state = NONE;
+			next_pid = t->pid;
 			RELEASE_THREAD(state);
 			return (val);
 		}
