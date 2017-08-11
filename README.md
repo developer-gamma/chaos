@@ -60,10 +60,9 @@ These are all the features that i'd like to implement by the end of 2017's summe
   - [X] Paging setup
   - [X] GDT setup
   - [X] IDT setup
-- [ ] Pc drivers
+- [X] Pc drivers
   - [X] VGA
   - [X] Serial
-  - [ ] Date / time
 - [X] Memory
   - [X] PMM
   - [X] VMM
@@ -75,9 +74,9 @@ These are all the features that i'd like to implement by the end of 2017's summe
   - [X] Kernel threads
   - [ ] Processes (`fork()` and `exit()`)
 - [X] Syscall interface
-- [ ] Userspace (ring3)
+- [X] Userspace (ring3)
 - [ ] Filesystem (`open()`, `read()`, `write()`, `close()`, `unlink`, `opendir()`, `readdir()`, `closedir()`, `pipe()`, `dup()`, `dup2()`)
-- [ ] ELF loading
+- [ ] ELF parsing and loading (`execve()`)
 - [ ] User space programs (init, shell, basic binaries such as `echo`, `ls`, `rm` etc.)
 
 # :rocket: Wanna participate?
