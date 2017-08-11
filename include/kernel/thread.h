@@ -83,7 +83,7 @@ void			arch_context_switch(struct thread *old, struct thread *new);
 void			arch_init_thread(struct thread *);
 void			arch_init_fork_thread(struct thread *new);
 struct vaspace		*arch_clone_vaspace(struct vaspace *src);
-void			arch_thread_exit();
+void			arch_thread_exit(void);
 void			arch_cleanup_thread(struct thread *t);
 
 # define LOCK_THREAD(state)	LOCK(&thread_table_lock, state)

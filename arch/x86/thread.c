@@ -114,7 +114,7 @@ arch_thread_exit(void)
 		/* radical way to clean up the memory space (okay, it may not be the best...) */
 		munmap(NULL, GET_PD_IDX(KERNEL_VIRTUAL_BASE) * 1024 * PAGE_SIZE);
 	}
-	/* kernel stack can't be free from exit(), so we'll free it from wait() */
+	/* kernel stack can't be freed from exit(), so we'll free it from waitpid() */
 }
 
 /*
