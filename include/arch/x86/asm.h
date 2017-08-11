@@ -73,6 +73,12 @@ get_cr3(void)
 }
 
 static inline void
+set_cr3(uintptr cr3)
+{
+	asm volatile("mov %0, %%cr3" :: "r"(cr3));
+}
+
+static inline void
 interrupt(uchar i)
 {
 	asm volatile("int %0" :: "i" (i));

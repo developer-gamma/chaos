@@ -67,7 +67,7 @@ fi
 ARGS="-m $MEMORY -cdrom $ISO"
 
 if [ $DEBUG == 1 ]; then
-	ARGS+=" -s -d int,cpu_reset,guest_errors,unimp"
+	ARGS+=" -s -d int,cpu_reset,guest_errors,unimp --no-reboot"
 fi
 
 if [ $KVM == 1 ]; then

@@ -143,17 +143,71 @@ read_command(void)
 	return (strndup(buffer, buff_size));
 }
 
+struct cmd
+{
+	char const *name;
+	char const *desc;
+	void (*func)(void);
+};
+
+static struct cmd cmds[];
+
+static void
+exec_help(void)
+{
+	struct cmd *cmd;
+
+	cmd = cmds;
+	puts("Available commands:\n");
+	while (cmd->desc)
+	{
+		putc('\t');
+		puts(cmd->name);
+		puts(":\t\t");
+		puts(cmd->desc);
+		putc('\n');
+		++cmd;
+	}
+}
+
+static void
+exec_ls(void)
+{
+	puts("file1\tfile2\tfile3\n");
+}
+static struct cmd cmds[] =
+{
+	{"help", "print the help", &exec_help},
+	{"ls", "list filesystem", &exec_ls},
+
+	{NULL, NULL, NULL},
+};
+
+
 static void
 parse_command(char const *cmd)
 {
-	if (!strcmp(cmd, "help")) {
-		puts("There is no other command than help yet :/\n");
+	pid_t pid;
+	struct cmd *c;
+
+	c= cmds;
+	while (c->name) {
+		if (!strcmp(c->name, cmd)) {
+			pid = fork();
+			assert_neq(pid, -1);
+			if (pid == 0) {
+				c->func();
+				exit();
+			} else {
+				/* waitpid(pid) would go there */
+			}
+			return ;
+		}
+		++c;
 	}
-	else {
-		puts("Unknown command \"");
-		puts(cmd);
-		puts("\"\n");
-	}
+	puts("Unknown command \"");
+	puts(cmd);
+	puts("\"\n");
 }
 
 int

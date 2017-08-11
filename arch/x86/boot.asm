@@ -9,7 +9,6 @@
 
 global start:function
 global ret_kernel_main
-global int_kernel_stack_top ; TODO For debugging purposes
 
 extern gdtptr_phys
 extern gdtptr
@@ -99,7 +98,7 @@ start:
 
 	lgdt [gdtptr]			; Reload the gdt
 
-	mov ax, TSS_SELECTOR
+	mov ax, TSS_SELECTOR | 0b11
 	ltr ax
 
 	; Unmap the low memory
@@ -143,7 +142,3 @@ align 4096
 kernel_stack_bottom:
 	resb 4096 * 16			; Byte reserved for kernel stack (at boot-time)
 kernel_stack_top:
-
-int_kernel_stack_bottom:
-	resb 4096 * 16			; Byte reserved for kernel stack (debugging purposes)
-int_kernel_stack_top:

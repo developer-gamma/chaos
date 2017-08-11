@@ -13,19 +13,25 @@
 enum syscalls_values
 {
 	UNKNOWN		= 0,
-	WRITE,
-	READ,
-	BRK,
-	SBRK,
+	EXIT		= 1,
+	FORK		= 2,
+	WRITE		= 3,
+	READ		= 4,
+	BRK		= 5,
+	SBRK		= 6,
+	GETPID		= 7
 };
 
 static char const *const syscalls_str[] =
 {
 	[UNKNOWN]	= "UNKNOWN",
+	[EXIT]		= "EXIT",
+	[FORK]		= "FORK",
 	[WRITE]		= "WRITE",
 	[READ]		= "READ",
 	[BRK]		= "BRK",
 	[SBRK]		= "SBRK",
+	[GETPID]	= "GETPID",
 };
 
 #endif /* !_KERNEL_SYSCALL_H_ */

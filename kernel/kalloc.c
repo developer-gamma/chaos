@@ -142,8 +142,6 @@ ret_ok:
 ret_err:
 	RELEASE_KHEAP(state);
 	return (NULL);
-
-
 }
 
 /*

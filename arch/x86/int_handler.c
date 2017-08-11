@@ -123,6 +123,21 @@ sys_read(int fd __unused, char *buff, size_t size)
 }
 
 /*
+** Do the fork system call
+*/
+pid_t
+sys_fork(void)
+{
+	struct thread *new;
+
+	new = thread_fork();
+	if (new) {
+		return (new->pid);
+	}
+	return (-1);
+}
+
+/*
 ** Common handler for all syscalls
 **
 ** Arguments are in iframe->edi, iframe->esi, iframe->edx and iframe->ecx.
@@ -130,8 +145,15 @@ sys_read(int fd __unused, char *buff, size_t size)
 void
 x86_syscalls_handler(struct iframe *iframe)
 {
+	get_current_thread()->arch.iframe = iframe;
 	switch (iframe->eax)
 	{
+		case EXIT:
+			thread_exit();
+			break;
+		case FORK:
+			iframe->eax = sys_fork();
+			break;
 		case WRITE:
 			iframe->eax = sys_write((int)iframe->edi, (char const *)iframe->esi, (size_t)iframe->edx);
 			break;
@@ -143,6 +165,9 @@ x86_syscalls_handler(struct iframe *iframe)
 			break;
 		case SBRK:
 			iframe->eax = (uintptr)usbrk((intptr)iframe->edi);
+			break;
+		case GETPID:
+			iframe->eax = get_current_thread()->pid;
 			break;
 		default:
 			panic("Unknown syscall %p\n", iframe->eax);

@@ -16,7 +16,8 @@ extern void			ret_kernel_main(void);
 # define			PRINT_STACK_FRAME(x)				\
 	ptr = __builtin_return_address(x);					\
 	printf("\tCalled by %p\n", __builtin_extract_return_addr(ptr));		\
-	if (ptr == &ret_kernel_main || ptr == NULL)				\
+	if (ptr == &ret_kernel_main						\
+		|| ptr == NULL)							\
 		break;								\
 
 /*
@@ -41,15 +42,15 @@ panic(const char *fmt, ...)
 	do
 	{
 		PRINT_STACK_FRAME(0);
-		PRINT_STACK_FRAME(1);
-		PRINT_STACK_FRAME(2);
-		PRINT_STACK_FRAME(3);
-		PRINT_STACK_FRAME(4);
-		PRINT_STACK_FRAME(5);
-		PRINT_STACK_FRAME(6);
-		PRINT_STACK_FRAME(7);
-		PRINT_STACK_FRAME(8);
-		PRINT_STACK_FRAME(9);
+		//PRINT_STACK_FRAME(1);
+		//PRINT_STACK_FRAME(2);
+		//PRINT_STACK_FRAME(3);
+		//PRINT_STACK_FRAME(4);
+		//PRINT_STACK_FRAME(5);
+		//PRINT_STACK_FRAME(6);
+		//PRINT_STACK_FRAME(7);
+		//PRINT_STACK_FRAME(8);
+		//PRINT_STACK_FRAME(9);
 	}
 	while (0);
 

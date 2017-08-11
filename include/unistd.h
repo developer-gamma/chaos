@@ -12,13 +12,18 @@
 
 # include <chaosdef.h>
 
+typedef int	pid_t;
+
 /*
 ** Userspace way of calling each syscalls.
 ** These functions are implemented in each architecture.
 */
+void		exit(void);
+pid_t		fork(void);
 ssize_t		write(int fd, const void *buff, size_t count);
 ssize_t		read(int fd, void *buff, size_t count);
 int		brk(void *addr);
 void		*sbrk(intptr inc);
+pid_t		getpid(void);
 
 #endif /* !_UNISTD_H_ */

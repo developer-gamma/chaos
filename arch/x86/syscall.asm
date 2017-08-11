@@ -39,7 +39,10 @@ global %2:function
 ; Remeber that ID must be the same than the one defined in include/kernel/syscall.h
 ;
 ; MACRO			ID			NAME
-SYSCALL			0x1,			write
-SYSCALL			0x2,			read
-SYSCALL			0x3,			brk
-SYSCALL			0x4,			sbrk
+SYSCALL			0x1,			exit
+SYSCALL			0x2,			fork
+SYSCALL			0x3,			write
+SYSCALL			0x4,			read
+SYSCALL			0x5,			brk
+SYSCALL			0x6,			sbrk
+SYSCALL			0x7,			getpid

@@ -45,6 +45,7 @@ struct			thread
 	char name[255];
 	pid_t pid;
 	enum thread_state state;
+	struct thread *parent;
 
 	/* Thread stack */
 	virt_addr_t stack;
@@ -63,6 +64,7 @@ struct			thread
 void			thread_init(void);
 void			thread_early_init(void);
 
+struct thread		*thread_fork(void);
 struct thread		*thread_create(char const *name, thread_entry_cb entry, size_t stack_size);
 void			thread_dump(void);
 void			thread_yield(void);
@@ -77,6 +79,8 @@ void			set_current_thread(struct thread *);
 struct thread		*get_current_thread(void);
 void			arch_context_switch(struct thread *old, struct thread *new);
 void			arch_init_thread(struct thread *);
+void			arch_init_fork_thread(struct thread *new);
+struct vaspace		*arch_clone_vaspace(struct vaspace *src);
 
 # define LOCK_THREAD(state)	LOCK(&thread_table_lock, state)
 # define RELEASE_THREAD(state)	RELEASE(&thread_table_lock, state)

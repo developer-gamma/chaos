@@ -10,9 +10,21 @@
 #ifndef _ARCH_X86_ARCH_THREAD_H_
 # define _ARCH_X86_ARCH_THREAD_H_
 
+# include <arch/x86/interrupts.h>
+
 struct		arch_thread
 {
+	/* Stack pointer of the thread, belongs to kernel stack */
 	virt_addr_t sp;
+
+	/* Pointer to the kerenl stack of this thread */
+	void *kernel_stack;
+
+	/* Size of the kernel stack */
+	size_t kernel_stack_size;
+
+	/* Interrupt frame, set when a syscall is trigger */
+	struct iframe *iframe;
 };
 
 struct		context_switch_frame
@@ -30,6 +42,7 @@ struct		context_switch_frame
 };
 
 extern void 	x86_context_switch(void **old_esp, void *new_esp);
-extern void	x86_jump_usermode(void *) __noreturn;
+extern void	x86_jump_userspace(void *) __noreturn;
+extern void	x86_return_userspace(void *) __noreturn;
 
 #endif /* _ARCH_X86_ARCH_THREAD_H_ */

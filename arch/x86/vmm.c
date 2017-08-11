@@ -9,8 +9,8 @@
 
 #include <kernel/unit-tests.h>
 #include <kernel/thread.h>
-#include <arch/x86/asm.h>
 #include <arch/x86/vmm.h>
+#include <arch/x86/asm.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -94,6 +94,48 @@ arch_munmap_va(virt_addr_t va)
 		pte->value = 0;
 		invlpg(va);
 	}
+}
+
+/*
+** Gets the physical address behind the given virtual address.
+** Returns NULL_FRAME if the given virtual address is not allocated.
+*/
+phys_addr_t
+get_paddr(virt_addr_t va)
+{
+	struct pagedir_entry *pde;
+	struct pagetable_entry *pte;
+
+	pde = GET_PAGE_DIRECTORY->entries + GET_PD_IDX(va);
+	pte = GET_PAGE_TABLE(GET_PD_IDX(va))->entries + GET_PT_IDX(va);
+	if (pde->present && pte->present) {
+		return (pte->frame << 12u);
+	}
+	return (NULL_FRAME);
+}
+
+/*
+** Sets the frame for a given virtual page.
+** The given virtual page must already be allocated, and the actual frame will NOT
+** be free.
+** The old frame is returned, or NULL_FRAME if the virtual page wasn't allocated.
+*/
+phys_addr_t
+set_paddr(virt_addr_t va, phys_addr_t pa)
+{
+	phys_addr_t old;
+	struct pagedir_entry *pde;
+	struct pagetable_entry *pte;
+
+	pde = GET_PAGE_DIRECTORY->entries + GET_PD_IDX(va);
+	pte = GET_PAGE_TABLE(GET_PD_IDX(va))->entries + GET_PT_IDX(va);
+	if (pde->present && pte->present) {
+		old = pte->frame << 12u;
+		pte->frame = pa >> 12u;
+		invlpg(va);
+		return (old);
+	}
+	return (NULL_FRAME);
 }
 
 void

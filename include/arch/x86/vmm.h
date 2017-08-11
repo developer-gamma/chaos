@@ -18,6 +18,7 @@
 # define GET_PAGE_TABLE(x)	((struct page_table *)(0xFFC00000ul | (((x) & 0x3FF) << 12u)))
 # define GET_PD_IDX(x)		((uintptr)(x) >> 22u)
 # define GET_PT_IDX(x)		(((uintptr)(x) >> 12u) & 0x3FF)
+# define GET_VADDR(i, j)	((void *)((i) << 22u | (j) << 12u))
 
 /*
 ** An entry in the page directory
@@ -88,5 +89,8 @@ static_assert(sizeof(struct pagedir_entry) == sizeof(uintptr));
 static_assert(sizeof(struct pagetable_entry) == sizeof(uintptr));
 static_assert(sizeof(struct page_table) == PAGE_SIZE);
 static_assert(sizeof(struct page_dir) == PAGE_SIZE);
+
+phys_addr_t		get_paddr(virt_addr_t);
+phys_addr_t		set_paddr(virt_addr_t va, phys_addr_t pa);
 
 #endif /* !_ARCH_X86_VMM_H_ */

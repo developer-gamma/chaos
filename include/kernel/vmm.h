@@ -10,13 +10,13 @@
 #ifndef _KERNEL_VMM_H_
 # define _KERNEL_VMM_H_
 
+typedef void 		*virt_addr_t;
+
 # include <kernel/pmm.h>
 # include <kernel/spinlock.h>
 # include <arch/vaspace.h>
 # include <chaosdef.h>
 # include <chaoserr.h>
-
-typedef void 		*virt_addr_t;
 
 /*
 ** Represents the virtual address space of a process.
@@ -45,6 +45,9 @@ struct vaspace
 
 	/* Locker to lock the virtual address space */
 	struct spinlock lock;
+
+	/* Number of threads sharing this virtual address space */
+	uint ref_count;
 };
 
 /*

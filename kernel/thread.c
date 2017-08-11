@@ -84,7 +84,7 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 	LOCK_THREAD(state)
 
 	pid = find_next_pid();
-	if (unlikely(pid == -1)) {
+	if (pid == -1) {
 		RELEASE_THREAD(state);
 		return (NULL);
 	}
@@ -95,8 +95,10 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 	t->pid = pid;
 	t->stack_size = stack_size;
 	t->entry = entry;
-	t->state = SUSPENDED;
+	t->state = RUNNABLE;
+	t->parent = get_current_thread()->parent;
 	t->vaspace = get_current_thread()->vaspace;
+	t->vaspace->ref_count++;
 
 	t->stack = mmap(NULL, stack_size);
 	assert_neq(t->stack, NULL);
@@ -105,6 +107,48 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 
 	RELEASE_THREAD(state);
 	return (t);
+}
+
+/*
+** Fork the given thread and it's virtual space
+*/
+struct thread *
+thread_fork(void)
+{
+	pid_t pid;
+	struct vaspace *vaspace;
+	struct thread *new;
+	struct thread *old;
+
+	LOCK_THREAD(state);
+
+	old = get_current_thread();
+
+	pid = find_next_pid();
+	if (pid == -1) {
+		goto err;
+	}
+
+	/* clone virtual address space */
+	vaspace = arch_clone_vaspace(old->vaspace);
+	if (!vaspace) {
+		goto err;
+	}
+
+	new = thread_table + pid;
+	memcpy(new, old, sizeof(*new));
+	new->pid = pid;
+	new->state = RUNNABLE;
+	new->parent = old;
+	new->vaspace = vaspace;
+
+	arch_init_fork_thread(new);
+
+	RELEASE_THREAD(state);
+	return (new);
+err:
+	RELEASE_THREAD(state);
+	return (NULL);
 }
 
 /*
@@ -120,6 +164,13 @@ thread_exit(void)
 	LOCK_THREAD(state);
 
 	assert_eq(t->state, RUNNING);
+
+	if (unlikely(t->pid == 1)) {
+		panic("init finished");
+	}
+
+	t->vaspace->ref_count--;
+	/* TODO free thread's memory space and kernel stack */
 
 	t->state = NONE; /* TODO change this in ZOMBIE */
 	next_pid = t->pid;
@@ -147,7 +198,7 @@ thread_resume(struct thread *t)
 }
 
 /*
-** Finish the current thread init
+** Finishes the init of the thread system.
 */
 void
 thread_init(void)

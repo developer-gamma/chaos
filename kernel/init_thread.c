@@ -23,8 +23,5 @@ init_routine(void)
 	** As execve() isn't implemented yet, i'm directly calling the main of the shell program.
 	*/
 	shell_main();
-
-	/* Init should never finish. */
-	panic("init finished");
 }
 
