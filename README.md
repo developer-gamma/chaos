@@ -69,10 +69,10 @@ These are all the features that i'd like to implement by the end of 2017's summe
   - [X] Kernel heap
   - [X] User heap
   - [X] User stacks / mmap
-- [ ] Multi process / threads
+- [X] Multi process / threads
   - [X] Scheduling
   - [X] Kernel threads
-  - [ ] Processes (`fork()` and `exit()`)
+  - [X] Processes (`fork()` and `exit()`)
 - [X] Syscall interface
 - [X] Userspace (ring3)
 - [ ] Filesystem (`open()`, `read()`, `write()`, `close()`, `unlink`, `opendir()`, `readdir()`, `closedir()`, `pipe()`, `dup()`, `dup2()`)
