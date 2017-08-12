@@ -10,6 +10,7 @@
 #include <kernel/init.h>
 #include <kernel/pmm.h>
 #include <kernel/unit-tests.h>
+#include <kernel/multiboot.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -98,11 +99,8 @@ is_frame_allocated(phys_addr_t frame)
 
 /*
 ** Mark a frame as allocated.
-**
-** This shall be called before any allocation, or the given frame may have
-** been allocated. You can check with 'is_frame_allocated()'
 */
-void
+static inline void
 mark_frame_as_allocated(phys_addr_t frame)
 {
 	assert(IS_PAGE_ALIGNED(frame));
@@ -110,10 +108,17 @@ mark_frame_as_allocated(phys_addr_t frame)
 }
 
 /*
-** Mark a range of frames as allocated
-**
-** This shall be called before any allocation, or the given frame may have
-** been allocated. You can check with 'is_frame_allocated()'
+** Mark a frame as freed.
+*/
+static inline void
+mark_frame_as_free(phys_addr_t frame)
+{
+	assert(IS_PAGE_ALIGNED(frame));
+	frame_bitmap[GET_FRAME_IDX(frame)] &= ~GET_FRAME_MASK(frame);
+}
+
+/*
+** Mark a range of frames as allocated.
 */
 void
 mark_range_as_allocated(phys_addr_t start, phys_addr_t end)
@@ -123,20 +128,55 @@ mark_range_as_allocated(phys_addr_t start, phys_addr_t end)
 
 	while (start <= end)
 	{
-		frame_bitmap[GET_FRAME_IDX(start)] |= GET_FRAME_MASK(start);
+		mark_frame_as_allocated(start);
+		start += PAGE_SIZE;
+	}
+}
+
+/*
+** Mark a range of frames as freed.
+*/
+void
+mark_range_as_free(phys_addr_t start, phys_addr_t end)
+{
+	assert(IS_PAGE_ALIGNED(start));
+	assert(IS_PAGE_ALIGNED(end));
+
+	while (start <= end)
+	{
+		mark_frame_as_free(start);
 		start += PAGE_SIZE;
 	}
 	next_frame = end;
 }
 
 /*
-** Reset the Physical Memory Manager
+** Reset the Physical Memory Manager.
 */
 static void
 pmm_reset(void)
 {
+	multiboot_memory_map_t *mmap;
+
 	next_frame = 0u;
-	memset(frame_bitmap, 0, sizeof(frame_bitmap));
+
+	/* Mark everything as allocated */
+	memset(frame_bitmap, 0xFF, sizeof(frame_bitmap));
+
+	/* Parse the multiboot structure to mark memory areas that aren't available */
+	mmap = multiboot_infos.mmap;
+	while (mmap < multiboot_infos.mmap_end)
+	{
+		if (mmap->type == MULTIBOOT_MEMORY_AVAILABLE) {
+			mark_range_as_free(
+				ROUND_DOWN(mmap->addr, PAGE_SIZE),
+				ALIGN(mmap->addr + mmap->len, PAGE_SIZE)
+			);
+		}
+		mmap = (multiboot_memory_map_t *)((uchar *)mmap + multiboot_infos.mmap_entry_size);
+	}
+
+	/* Mark the kernel as allocated */
 	mark_range_as_allocated(0, (KERNEL_PHYSICAL_END & ~PAGE_SIZE_MASK) + PAGE_SIZE);
 }
 
@@ -147,7 +187,7 @@ static void
 pmm_init(enum init_level il __unused)
 {
 	pmm_reset();
-	printf("[OK]\tPhysical Memory Managment (%#p)\n", next_frame);
+	printf("[OK]\tPhysical Memory Managment (Size: %r)\n", (multiboot_infos.mem_stop - multiboot_infos.mem_start) * 1024u);
 }
 
 /*
@@ -156,15 +196,8 @@ pmm_init(enum init_level il __unused)
 static void
 pmm_test(void)
 {
-	phys_addr_t pa;
-
-	pa = 0;
-	/* Reverse init to avoid conflicts */
-	while (pa <= (KERNEL_PHYSICAL_END & ~PAGE_SIZE_MASK) + PAGE_SIZE)
-	{
-		free_frame(pa);
-		pa += PAGE_SIZE;
-	}
+	/* Mark everything as free for the unit tests (will be reversed after) */
+	memset(frame_bitmap, 0x00, sizeof(frame_bitmap));
 
 	assert(!is_frame_allocated(0xfffff000));
 	mark_frame_as_allocated(0xfffff000);

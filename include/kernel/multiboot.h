@@ -11,6 +11,7 @@
 # define _KERNEL_MULTIBOOT_H_
 
 # include <chaosdef.h>
+# include <multiboot2.h>
 
 struct cmd_options
 {
@@ -20,9 +21,15 @@ struct cmd_options
 struct multiboot_info
 {
 	char const *args;
+	char const *bootloader;
+	uintptr mem_start;
+	uintptr mem_stop;
+	multiboot_memory_map_t *mmap;
+	multiboot_memory_map_t *mmap_end;
+	size_t mmap_entry_size;
 };
 
-struct cmd_options cmd_options;
-struct multiboot_info multiboot_info;
+extern struct cmd_options cmd_options;
+extern struct multiboot_info multiboot_infos;
 
 #endif /* !_KERNEL_MULTIBOOT_H_ */

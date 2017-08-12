@@ -30,7 +30,7 @@ struct vaspace default_vaspace;
 ** Returns -1 if no pid are available.
 */
 static pid_t
-find_next_pid()
+find_next_pid(void)
 {
 	bool pass;
 	pid_t pid;

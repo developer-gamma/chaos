@@ -38,7 +38,7 @@ thread_main(void)
 ** Very first entry point of a child thread after a fork. Returns from the fork.
 */
 static void
-thread_return_fork()
+thread_return_fork(void)
 {
 	/* Release the lock acquired by the thread_yield() that brought us here. */
 	release_lock(&thread_table_lock);

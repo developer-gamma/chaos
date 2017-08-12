@@ -53,11 +53,23 @@ multiboot_load(void)
 		case MULTIBOOT_TAG_TYPE_CMDLINE:
 			multiboot_infos.args = ((struct multiboot_tag_string *)tag)->string;
 			break;
+		case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
+			multiboot_infos.bootloader = ((struct multiboot_tag_string *)tag)->string;
+			break;
+		case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
+			multiboot_infos.mem_start = ((struct multiboot_tag_basic_meminfo *)tag)->mem_lower;
+			multiboot_infos.mem_stop = ((struct multiboot_tag_basic_meminfo *)tag)->mem_upper;
+			break;
+		case MULTIBOOT_TAG_TYPE_MMAP:
+			multiboot_infos.mmap = ((struct multiboot_tag_mmap *)tag)->entries;
+			multiboot_infos.mmap_entry_size = ((struct multiboot_tag_mmap *)tag)->entry_size;
+			multiboot_infos.mmap_end = (multiboot_memory_map_t *)((uchar *)tag + tag->size);
+			break;
 		}
 		tag = (struct multiboot_tag *)((uchar *)tag + ((tag->size + 7) & ~7));
 	}
 	parse_cmd_options();
-	printf("\r[OK]\tMultiboot [%s]\n", multiboot_infos.args);
+	printf("\r[OK]\tMultiboot [%s] [%s]\n", multiboot_infos.bootloader, multiboot_infos.args);
 }
 
 static void
