@@ -177,7 +177,7 @@ pmm_reset(void)
 	}
 
 	/* Mark the kernel as allocated */
-	mark_range_as_allocated(0, (KERNEL_PHYSICAL_END & ~PAGE_SIZE_MASK) + PAGE_SIZE);
+	mark_range_as_allocated(0, ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE));
 }
 
 /*

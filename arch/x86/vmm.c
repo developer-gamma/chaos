@@ -142,21 +142,34 @@ void
 arch_vmm_init(void)
 {
 	size_t i;
+	size_t j;
+	phys_addr_t pa;
 	status_t s;
+
+	/* Remove the top part of identity mapping */
+	i = GET_PD_IDX(KERNEL_VIRTUAL_END);
+	j = GET_PT_IDX(KERNEL_VIRTUAL_END) + 1;
+	while (j < 1024)
+	{
+		pa = GET_PAGE_TABLE(i)->entries[j].frame << 12u;
+		assert(pa > KERNEL_PHYSICAL_END);
+
+		GET_PAGE_TABLE(i)->entries[j].value = 0;
+		++j;
+	}
 
 	/* Defined in kernel/thread.c */
 	extern struct vaspace default_vaspace;
 
-	i = GET_PD_IDX(KERNEL_VIRTUAL_BASE);
-	default_vaspace.arch.pagedir = get_cr3();
-
 	/* Allocates all kernel page tables, so that each future processes share kernel memory. */
+	i = GET_PD_IDX(KERNEL_VIRTUAL_BASE);
 	while (i < 1023)
 	{
 		s = arch_map_page(GET_PAGE_TABLE(i));
 		assert(s == OK || s == ERR_ALREADY_MAPPED);
 		++i;
 	}
+	default_vaspace.arch.pagedir = get_cr3();
 }
 
 /* Unit tests functions */

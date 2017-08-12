@@ -51,7 +51,7 @@ mmap(virt_addr_t va, size_t size)
 	{
 		/* TODO Use unmaped memory of the Memory Mapping segment */
 		vaspace = get_current_thread()->vaspace;
-		ori_va = mmap((char *)vaspace->mmapping_start - vaspace->mmapping_size - size, size);
+		ori_va = mmap((char *)vaspace->mmapping_start - vaspace->mmapping_size - size + PAGE_SIZE, size);
 		if (ori_va != NULL) {
 			vaspace->mmapping_size += size;
 		}
@@ -220,7 +220,7 @@ static void
 vmm_init(enum init_level il __unused)
 {
 	/* Set-up kernel heap */
-	kernel_heap_start = (virt_addr_t)ALIGN((uintptr)KERNEL_VIRTUAL_END, 1024u * PAGE_SIZE);
+	kernel_heap_start = (virt_addr_t)ALIGN((uintptr)KERNEL_VIRTUAL_END, PAGE_SIZE) + PAGE_SIZE;
 	kernel_heap_size = 0;
 
 	arch_vmm_init();
