@@ -166,7 +166,7 @@ thread_exit(int status)
 	assert_eq(t->state, RUNNING);
 
 	if (unlikely(t->pid == 1)) {
-		panic("init finished");
+		panic("init finished (exit status: %u)", status);
 	}
 
 	t->vaspace->ref_count--;
