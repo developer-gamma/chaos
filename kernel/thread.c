@@ -100,7 +100,7 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 	t->vaspace = get_current_thread()->vaspace;
 	t->vaspace->ref_count++;
 
-	t->stack = mmap(NULL, stack_size);
+	t->stack = mmap(NULL, stack_size, MMAP_USER | MMAP_WRITE);
 	assert_neq(t->stack, NULL);
 
 	arch_init_thread(t);
@@ -166,7 +166,7 @@ thread_exit(int status)
 	assert_eq(t->state, RUNNING);
 
 	if (unlikely(t->pid == 1)) {
-		panic("init finished (exit status: %u)", status);
+		panic("%s finished (exit status: %u)", t->name, status);
 	}
 
 	t->vaspace->ref_count--;

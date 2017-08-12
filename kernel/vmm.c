@@ -36,7 +36,7 @@ size_t kernel_heap_size;
 ** a default implemententation is given.
 */
 __weak virt_addr_t
-mmap(virt_addr_t va, size_t size)
+mmap(virt_addr_t va, size_t size, mmap_flags_t flags)
 {
 	virt_addr_t ori_va;
 	struct vaspace *vaspace;
@@ -51,7 +51,7 @@ mmap(virt_addr_t va, size_t size)
 	{
 		/* TODO Use unmaped memory of the Memory Mapping segment */
 		vaspace = get_current_thread()->vaspace;
-		ori_va = mmap((char *)vaspace->mmapping_start - vaspace->mmapping_size - size + PAGE_SIZE, size);
+		ori_va = mmap((char *)vaspace->mmapping_start - vaspace->mmapping_size - size + PAGE_SIZE, size, flags);
 		if (ori_va != NULL) {
 			vaspace->mmapping_size += size;
 		}
@@ -61,7 +61,7 @@ mmap(virt_addr_t va, size_t size)
 	{
 		while (va < ori_va + size)
 		{
-			if (unlikely(arch_map_page(va) != OK)) {
+			if (unlikely(arch_map_page(va, flags) != OK)) {
 				munmap(ori_va, va - ori_va);
 				goto err_ret;
 			}
@@ -120,7 +120,7 @@ kbrk(virt_addr_t new_brk)
 		kernel_heap_size += add;
 		if (round_add > 0)
 		{
-			if (unlikely(mmap(brk + PAGE_SIZE, round_add) == NULL)) {
+			if (unlikely(mmap(brk + PAGE_SIZE, round_add, MMAP_WRITE) == NULL)) {
 				kernel_heap_size -= add;
 				return (ERR_NO_MEMORY);
 			}
@@ -175,7 +175,7 @@ ubrk(virt_addr_t new_brk)
 		vaspace->heap_size += add;
 		if (round_add > 0)
 		{
-			if (unlikely(mmap(brk + PAGE_SIZE, round_add) == NULL)) {
+			if (unlikely(mmap(brk + PAGE_SIZE, round_add, MMAP_USER | MMAP_WRITE) == NULL)) {
 				vaspace->heap_size -= add;
 				RELEASE_VASPACE(state);
 				return (ERR_NO_MEMORY);
@@ -226,13 +226,13 @@ vmm_init(enum init_level il __unused)
 	arch_vmm_init();
 
 	/* Allocate the first heap page or the kbrk algorithm will not work. */
-	assert_neq(mmap(kernel_heap_start, PAGE_SIZE), NULL);
+	assert_neq(mmap(kernel_heap_start, PAGE_SIZE, MMAP_WRITE), NULL);
 
 	/* Defined in kernel/thread.c */
 	extern struct vaspace default_vaspace;
 
-	/* Allocate the first heap page of boot thread the ubrk algorithm will not work. */
-	assert_neq(mmap(default_vaspace.heap_start, PAGE_SIZE), NULL);
+	/* Allocate the first heap page of init thread the ubrk algorithm will not work. */
+	assert_neq(mmap(default_vaspace.heap_start, PAGE_SIZE, MMAP_USER | MMAP_WRITE), NULL);
 
 	printf("[OK]\tVirtual Memory Management\n");
 }

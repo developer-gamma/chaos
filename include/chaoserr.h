@@ -47,8 +47,9 @@ enum				status
 	ERR_IO,				/* I/O error */
 
 	/* Mapping errors */
-	ERR_ALREADY_MAPPED,
-	ERR_NOT_MAPPED,
+	ERR_ALREADY_MAPPED,		/* The given virtual address is already mapped */
+	ERR_NOT_MAPPED,			/* The given virtual address is not mapped*/
+	ERR_CANT_MAP,			/* The mapping can't be done (reasons may be arch-dependant) */
 };
 
 typedef enum status	status_t;

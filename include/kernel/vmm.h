@@ -50,6 +50,14 @@ struct vaspace
 	uint ref_count;
 };
 
+/* Arch-indepentant flags for pages */
+# define MMAP_DEFAULT		0b00000000	/* Kernel space, read only */
+# define MMAP_USER		0b00000001	/* Page belongs to user space */
+# define MMAP_WRITE		0b00000010	/* Page is writtable */
+
+/* The integer type corresponding to the flags above */
+typedef uintptr			mmap_flags_t;
+
 /*
 ** Used for debugging purposes. Dumps the memory state
 */
@@ -63,12 +71,12 @@ bool			arch_is_allocated(virt_addr_t);
 /*
 ** Maps a physical address to a virtual one.
 */
-status_t		arch_map_virt_to_phys(virt_addr_t, phys_addr_t);
+status_t		arch_map_virt_to_phys(virt_addr_t, phys_addr_t, mmap_flags_t);
 
 /*
 ** Maps the given virtual address to a random physical addresses.
 */
-status_t		arch_map_page(virt_addr_t va);
+status_t		arch_map_page(virt_addr_t va, mmap_flags_t);
 
 /*
 ** Unmaps a virtual address.
@@ -80,7 +88,7 @@ void			arch_munmap_va(virt_addr_t va);
 */
 void			arch_vmm_init(void);
 
-virt_addr_t		mmap(virt_addr_t va, size_t size);
+virt_addr_t		mmap(virt_addr_t va, size_t size, mmap_flags_t);
 void			munmap(virt_addr_t va, size_t size);
 status_t		kbrk(virt_addr_t new_brk);
 virt_addr_t		ksbrk(intptr);

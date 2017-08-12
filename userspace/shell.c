@@ -195,7 +195,6 @@ static struct cmd cmds[] =
 	{NULL, NULL, NULL},
 };
 
-
 static void
 parse_command(char const *cmd)
 {
