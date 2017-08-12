@@ -17,7 +17,7 @@
 struct multiboot_tag *mb_tag = NULL;
 
 /* Informations given to us using multiboot */
-struct multiboot_info multiboot_infos = { 0 };
+struct multiboot_info multiboot_infos;
 
 /* Command line arguments */
 struct cmd_options cmd_options =
@@ -45,6 +45,7 @@ multiboot_load(void)
 	struct multiboot_tag *tag;
 
 	printf("[..]\t Multiboot");
+	memset(&multiboot_infos, 0, sizeof(multiboot_infos));
 	tag = mb_tag;
 	while (tag->type != MULTIBOOT_TAG_TYPE_END)
 	{
