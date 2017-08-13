@@ -56,5 +56,8 @@ void				free_zombie_thread(struct thread *t);
 
 /* Must be re-implemented on each supported architecture */
 struct vaspace			*arch_clone_vaspace(struct vaspace *src);
+void				arch_init_vaspace(void);
+void				arch_free_vaspace(void);
+void				arch_free_zombie_thread(struct thread *t);
 
 #endif /* !_KERNEL_VASPACE_H_ */
