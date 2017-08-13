@@ -11,6 +11,7 @@
 # define _UNISTD_H_
 
 # include <chaosdef.h>
+# include <chaoserr.h>
 
 typedef int	pid_t;
 
@@ -26,5 +27,6 @@ int		brk(void *addr);
 void		*sbrk(intptr inc);
 pid_t		getpid(void);
 int		waitpid(pid_t);
+status_t	execve(char const *, int (*)(void));
 
 #endif /* !_UNISTD_H_ */

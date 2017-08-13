@@ -33,6 +33,38 @@ typedef uintptr			phys_addr_t;
 /* Physical allocation functions */
 phys_addr_t			alloc_frame(void);
 void				free_frame(phys_addr_t);
-bool				is_frame_allocated(phys_addr_t frame);
+size_t				nb_free_frames(void);
+
+extern uchar			frame_bitmap[FRAME_BITMAP_SIZE];
+
+/*
+** Returns true if the given address is taken.
+*/
+static bool
+is_frame_allocated(phys_addr_t frame)
+{
+	assert(IS_PAGE_ALIGNED(frame));
+	return (frame_bitmap[GET_FRAME_IDX(frame)] & (GET_FRAME_MASK(frame)));
+}
+
+/*
+** Mark a frame as allocated.
+*/
+static inline void
+mark_frame_as_allocated(phys_addr_t frame)
+{
+	assert(IS_PAGE_ALIGNED(frame));
+	frame_bitmap[GET_FRAME_IDX(frame)] |= GET_FRAME_MASK(frame);
+}
+
+/*
+** Mark a frame as freed.
+*/
+static inline void
+mark_frame_as_free(phys_addr_t frame)
+{
+	assert(IS_PAGE_ALIGNED(frame));
+	frame_bitmap[GET_FRAME_IDX(frame)] &= ~GET_FRAME_MASK(frame);
+}
 
 #endif /* !_KERNEL_PMM_H_ */

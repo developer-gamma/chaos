@@ -22,6 +22,7 @@ extern void *__KERNEL_VIRTUAL_BASE __weak;
 extern void *__KERNEL_VIRTUAL_END __weak;
 extern void *__KERNEL_PHYSICAL_END __weak;
 
+/* All guaranteed to be page-aligned */
 # define KERNEL_VIRTUAL_LINK	((void *)&__KERNEL_VIRTUAL_LINK)
 # define KERNEL_VIRTUAL_BASE	((void *)&__KERNEL_VIRTUAL_BASE)
 # define KERNEL_VIRTUAL_END	((void *)&__KERNEL_VIRTUAL_END)

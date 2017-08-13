@@ -11,6 +11,7 @@
 # define _KERNEL_THREAD_H_
 
 # include <kernel/vmm.h>
+# include <kernel/vaspace.h>
 # include <arch/thread.h>
 # include <chaosdef.h>
 # include <config.h>
@@ -74,6 +75,7 @@ void			thread_reschedule(void);
 void			thread_resume(struct thread *);
 void			thread_exit(int);
 int			thread_waitpid(pid_t);
+status_t		thread_execve(char const *, int (*)(void));
 enum handler_return	irq_timer_handler(void);
 
 /* Must be implemented in each architecture */
@@ -82,9 +84,7 @@ struct thread		*get_current_thread(void);
 void			arch_context_switch(struct thread *old, struct thread *new);
 void			arch_init_thread(struct thread *);
 void			arch_init_fork_thread(struct thread *new);
-struct vaspace		*arch_clone_vaspace(struct vaspace *src);
-void			arch_thread_exit(void);
-void			arch_cleanup_thread(struct thread *t);
+void			arch_thread_execve(void);
 
 # define LOCK_THREAD(state)	LOCK(&thread_table_lock, state)
 # define RELEASE_THREAD(state)	RELEASE(&thread_table_lock, state)

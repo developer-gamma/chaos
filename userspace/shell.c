@@ -168,6 +168,7 @@ exec_help(void)
 		putc('\n');
 		++cmd;
 	}
+	exit();
 	return (0);
 }
 
@@ -175,14 +176,15 @@ static int
 exec_ls(void)
 {
 	puts("file1\tfile2\tfile3\n");
+	exit();
 	return (0);
 }
 
-__attribute__((optimize("O0")))
 static int
 exec_sigsev(void)
 {
 	*(char *)0xDEADBEEF = 'a';
+	exit();
 	return (0);
 }
 
@@ -207,7 +209,8 @@ parse_command(char const *cmd)
 			pid = fork();
 			assert_neq(pid, -1);
 			if (pid == 0) {
-				c->func();
+				execve(c->name, c->func);
+				puts("execve failed\n");
 				exit();
 			} else {
 				if (waitpid(pid) == 139) {
@@ -224,7 +227,7 @@ parse_command(char const *cmd)
 }
 
 int
-shell_main(void)
+init_routine(void)
 {
 	char *cmd;
 

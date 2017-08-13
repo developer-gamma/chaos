@@ -22,9 +22,6 @@ struct thread thread_table[MAX_PID];
 struct thread *init_thread = thread_table + 1;
 struct spinlock thread_table_lock;
 
-/* Default virtual address space for the boot thread */
-struct vaspace default_vaspace;
-
 /*
 ** Look for the next available pid.
 ** Returns -1 if no pid are available.
@@ -85,28 +82,33 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 
 	pid = find_next_pid();
 	if (pid == -1) {
-		RELEASE_THREAD(state);
-		return (NULL);
+		goto err;
 	}
 
 	t = thread_table + pid;
 	memset(t, 0, sizeof(*t));
 	thread_set_name(t, name);
 	t->pid = pid;
-	t->stack_size = stack_size;
 	t->entry = entry;
 	t->state = RUNNABLE;
 	t->parent = get_current_thread()->parent;
 	t->vaspace = get_current_thread()->vaspace;
 	t->vaspace->ref_count++;
 
+	t->stack_size = stack_size;
 	t->stack = mmap(NULL, stack_size, MMAP_USER | MMAP_WRITE);
 	assert_neq(t->stack, NULL);
+	t->stack += stack_size - 1;
+	t->stack = (void *)ROUND_DOWN((uintptr)t->stack, sizeof(void *));
 
 	arch_init_thread(t);
 
 	RELEASE_THREAD(state);
 	return (t);
+
+err:
+	RELEASE_THREAD(state);
+	return (NULL);
 }
 
 /*
@@ -165,18 +167,60 @@ thread_exit(int status)
 
 	assert_eq(t->state, RUNNING);
 
+	/* init should never finish */
 	if (unlikely(t->pid == 1)) {
 		panic("%s finished (exit status: %u)", t->name, status);
 	}
 
+	/* free the virtual address space if we are the last thread using it */
 	t->vaspace->ref_count--;
-	arch_thread_exit();
+	if (t->vaspace->ref_count == 0) {
+		free_vaspace();
+	}
 
 	t->exit_status = status & 0xFFu;
 	t->state = ZOMBIE;
 	thread_reschedule();
 
 	panic("Reached end of thread_exit()"); /* We shoudln't reach this portion of code. */
+}
+
+/*
+** Change the program executed by the current thread
+*/
+status_t
+thread_execve(char const *name, int (*main)(void))
+{
+	struct thread *t;
+
+	LOCK_VASPACE(state)
+
+	t = get_current_thread();
+	thread_set_name(t, name);
+	t->entry = main;
+
+	/* TODO kill other threads here */
+	assert_eq(get_current_thread()->vaspace->ref_count, 1);
+
+	free_vaspace();
+
+	/* TODO load the given binary here */
+	get_current_thread()->vaspace->binary_limit = PAGE_SIZE;
+
+	/* Initialize the new vaspace */
+	init_vaspace();
+
+	/* Allocate main-thread's stack */
+	t->stack = mmap(NULL, t->stack_size, MMAP_USER | MMAP_WRITE);
+	assert_neq(t->stack, NULL);
+	t->stack += t->stack_size - 1;
+	t->stack = (void *)ROUND_DOWN((uintptr)t->stack, sizeof(void *));
+
+	/* set IP and other arch-related stuff */
+	arch_thread_execve();
+
+	RELEASE_VASPACE(state);
+	return (OK);
 }
 
 /*
@@ -213,10 +257,11 @@ thread_waitpid(pid_t pid)
 	while (42) { /* TODO This is unsafe, a wakeup() approach is safer */
 		LOCK_THREAD(state);
 		if (t->state == ZOMBIE) {
-			arch_cleanup_thread(t);
+			free_zombie_thread(t);
 			val = t->exit_status;
 			t->state = NONE;
 			next_pid = t->pid;
+
 			RELEASE_THREAD(state);
 			return (val);
 		}
@@ -233,6 +278,9 @@ thread_init(void)
 	struct thread *t;
 
 	assert(!arch_are_int_enabled());
+
+	/* Initialize the default virtual address space */
+	init_vaspace();
 
 	/* Create the init thread */
 	t = thread_create("init", &init_routine, DEFAULT_STACK_SIZE);
@@ -271,20 +319,13 @@ thread_early_init(void)
 
 	t = thread_table;
 	memset(thread_table, 0, sizeof(thread_table));
+
 	thread_set_name(t, "boot");
 	t->pid = 0;
 	t->state = RUNNING;
-	t->vaspace = &default_vaspace;
+	t->vaspace = setup_boot_vaspace();
 
-	/* Set-up default virtual space */
-	memset(&default_vaspace, 0, sizeof(default_vaspace));
-	init_lock(&default_vaspace.lock);
-
-	default_vaspace.mmapping_start = (char *)ALIGN((uintptr)KERNEL_VIRTUAL_BASE, PAGE_SIZE) - PAGE_SIZE;
-	default_vaspace.binary_limit = ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE);
-	default_vaspace.heap_start = (char *)default_vaspace.binary_limit + PAGE_SIZE;
-	default_vaspace.binary_limit = ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE);
-
+	/* Set current thread */
 	set_current_thread(t);
 
 	/* Register the timer handler. */

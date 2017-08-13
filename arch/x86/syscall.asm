@@ -47,3 +47,4 @@ SYSCALL			0x5,			brk
 SYSCALL			0x6,			sbrk
 SYSCALL			0x7,			getpid
 SYSCALL			0x8,			waitpid
+SYSCALL			0x9,			execve

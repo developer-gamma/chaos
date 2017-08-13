@@ -42,7 +42,7 @@ struct		context_switch_frame
 };
 
 extern void 	x86_context_switch(void **old_esp, void *new_esp);
-extern void	x86_jump_userspace(void *) __noreturn;
+extern void	x86_jump_userspace(void *, void *) __noreturn;
 extern void	x86_return_userspace(void *) __noreturn;
 
 #endif /* _ARCH_X86_ARCH_THREAD_H_ */

@@ -18,38 +18,6 @@ typedef void 		*virt_addr_t;
 # include <chaosdef.h>
 # include <chaoserr.h>
 
-/*
-** Represents the virtual address space of a process.
-*/
-struct vaspace
-{
-	/* 0xFFFFFFFF */
-
-	/* Kernel space */
-
-	/* 0xCFFFFFFF */
-
-	/* Memory Mapping segment (stacks, dynamic libraries etc.) (goes downward) */
-	void *mmapping_start;
-	size_t mmapping_size;
-
-	/* heap segment (goes upward) */
-	size_t heap_size;
-	void *heap_start;
-
-	uintptr binary_limit; /* Binary goes from 0x0 to this */
-
-	/* 0x00000000 */
-
-	struct arch_vaspace arch;
-
-	/* Locker to lock the virtual address space */
-	struct spinlock lock;
-
-	/* Number of threads sharing this virtual address space */
-	uint ref_count;
-};
-
 /* Arch-indepentant flags for pages */
 # define MMAP_DEFAULT		0b00000000	/* Kernel space, read only */
 # define MMAP_USER		0b00000001	/* Page belongs to user space */

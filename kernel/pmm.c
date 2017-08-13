@@ -21,7 +21,7 @@
 ** It can definitely be optimised, but that's not the point at this moment.
 */
 
-static uchar				frame_bitmap[FRAME_BITMAP_SIZE];
+uchar					frame_bitmap[FRAME_BITMAP_SIZE];
 static size_t				next_frame;
 
 /*
@@ -88,36 +88,6 @@ free_frame(phys_addr_t frame)
 }
 
 /*
-** Returns true if the given address is taken.
-*/
-bool
-is_frame_allocated(phys_addr_t frame)
-{
-	assert(IS_PAGE_ALIGNED(frame));
-	return (frame_bitmap[GET_FRAME_IDX(frame)] & (GET_FRAME_MASK(frame)));
-}
-
-/*
-** Mark a frame as allocated.
-*/
-static inline void
-mark_frame_as_allocated(phys_addr_t frame)
-{
-	assert(IS_PAGE_ALIGNED(frame));
-	frame_bitmap[GET_FRAME_IDX(frame)] |= GET_FRAME_MASK(frame);
-}
-
-/*
-** Mark a frame as freed.
-*/
-static inline void
-mark_frame_as_free(phys_addr_t frame)
-{
-	assert(IS_PAGE_ALIGNED(frame));
-	frame_bitmap[GET_FRAME_IDX(frame)] &= ~GET_FRAME_MASK(frame);
-}
-
-/*
 ** Mark a range of frames as allocated.
 */
 void
@@ -147,7 +117,35 @@ mark_range_as_free(phys_addr_t start, phys_addr_t end)
 		mark_frame_as_free(start);
 		start += PAGE_SIZE;
 	}
-	next_frame = end;
+	next_frame = start;
+}
+
+/*
+** Calculates the amount of free frames
+*/
+size_t
+nb_free_frames(void)
+{
+	size_t i;
+	size_t nb;
+
+	i = 0;
+	nb = 0;
+	while (i < FRAME_BITMAP_SIZE)
+	{
+		if (frame_bitmap[i] != 0xFF) {
+			nb += !(bool)(frame_bitmap[i] & (1 << 0));
+			nb += !(bool)(frame_bitmap[i] & (1 << 1));
+			nb += !(bool)(frame_bitmap[i] & (1 << 2));
+			nb += !(bool)(frame_bitmap[i] & (1 << 3));
+			nb += !(bool)(frame_bitmap[i] & (1 << 4));
+			nb += !(bool)(frame_bitmap[i] & (1 << 5));
+			nb += !(bool)(frame_bitmap[i] & (1 << 6));
+			nb += !(bool)(frame_bitmap[i] & (1 << 7));
+		}
+		++i;
+	}
+	return (nb);
 }
 
 /*
@@ -177,7 +175,7 @@ pmm_reset(void)
 	}
 
 	/* Mark the kernel as allocated */
-	mark_range_as_allocated(0, ALIGN(KERNEL_PHYSICAL_END, PAGE_SIZE));
+	mark_range_as_allocated(0, KERNEL_PHYSICAL_END);
 }
 
 /*

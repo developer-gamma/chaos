@@ -16,7 +16,6 @@
 #include <kernel/thread.h>
 #include <kernel/interrupts.h>
 #include <stdio.h>
-#include <string.h>
 
 /* Heap main variables */
 virt_addr_t kernel_heap_start;
@@ -219,20 +218,20 @@ usbrk(intptr inc)
 static void
 vmm_init(enum init_level il __unused)
 {
+	/* Some assertions that can't be static_assert() */
+	assert(IS_PAGE_ALIGNED(KERNEL_VIRTUAL_LINK));
+	assert(IS_PAGE_ALIGNED(KERNEL_VIRTUAL_BASE));
+	assert(IS_PAGE_ALIGNED(KERNEL_VIRTUAL_END));
+	assert(IS_PAGE_ALIGNED(KERNEL_PHYSICAL_END));
+
 	/* Set-up kernel heap */
-	kernel_heap_start = (virt_addr_t)ALIGN((uintptr)KERNEL_VIRTUAL_END, PAGE_SIZE) + PAGE_SIZE;
+	kernel_heap_start = KERNEL_VIRTUAL_END + PAGE_SIZE;
 	kernel_heap_size = 0;
 
 	arch_vmm_init();
 
 	/* Allocate the first heap page or the kbrk algorithm will not work. */
 	assert_neq(mmap(kernel_heap_start, PAGE_SIZE, MMAP_WRITE), NULL);
-
-	/* Defined in kernel/thread.c */
-	extern struct vaspace default_vaspace;
-
-	/* Allocate the first heap page of init thread the ubrk algorithm will not work. */
-	assert_neq(mmap(default_vaspace.heap_start, PAGE_SIZE, MMAP_USER | MMAP_WRITE), NULL);
 
 	printf("[OK]\tVirtual Memory Management\n");
 }

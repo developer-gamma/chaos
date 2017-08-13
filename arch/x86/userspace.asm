@@ -32,6 +32,8 @@ x86_context_switch:
 ;
 x86_jump_userspace:
 	mov edx, [esp + 4]			; Save the parameter now
+	mov ecx, [esp + 8]
+	mov esp, ecx
 
 	mov ax, USER_DATA_SELECTOR | 0b11	; User data selector with bottom bits sets for ring3
 	mov ds,ax
@@ -39,12 +41,11 @@ x86_jump_userspace:
 	mov fs,ax
 	mov gs,ax				; ss is handled by iret, so don't worry
 
-	mov eax, esp
 	push USER_DATA_SELECTOR | 0b11		; push user data segment
-	push eax				; push current stack
-	pushfd					; push eflags
+	push ecx				; push current stack
+	pushf					; push eflags
 	push USER_CODE_SELECTOR | 0b11		; push user code segments with bottom bits sets.
-	push process_main			; the usermode function to call
+	push edx				; the usermode function to call
 	iret					; let the magic happen
 
 ;
@@ -63,17 +64,3 @@ x86_return_userspace:
 	popa
 	add esp, 8
 	iret
-
-;
-; Very first function running in usermode of every threads.
-; Simply calls the thread main function and then the exit syscall.
-;
-; The main function is passed in edx
-process_main:
-	call edx		; Call the given main function
-
-	; TODO Exit syscall
-	mov eax, 0
-	int 0x80		; Syscall
-
-

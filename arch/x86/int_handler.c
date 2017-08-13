@@ -33,6 +33,25 @@ x86_breakpoint_handler(struct iframe *iframe)
 static status_t
 x86_pagefault_handler(struct iframe *iframe __unused)
 {
+	uintptr addr;
+
+	if (unlikely(get_current_thread()->pid == 1)) /* Usefull for boot crash */
+	{
+		addr = get_cr2();
+		printf("Page Fault at address %#p.\n"
+			"\tAddress: %#p\n"
+			"\tPresent: %y\n"
+			"\tWrite: %y\n"
+			"\tUser-mode: %y\n"
+			"\tReserved: %y\n",
+			iframe->eip,
+			(void *)addr,
+			(bool)((iframe->err_code ^ 0x1)),
+			(bool)((iframe->err_code & 0x2)),
+			(bool)((iframe->err_code & 0x4)),
+			(bool)((iframe->err_code & 0x8))
+		);
+	}
 	thread_exit(139); /* Boom, headshot! */
 	return (OK);
 }
@@ -88,53 +107,6 @@ x86_irq_handler(struct iframe * iframe)
 }
 
 /*
-** Quick & dirty sys_write() to handle standard output.
-** Doesn't take the file descriptor into account.
-*/
-int
-sys_write(int fd __unused, char const *buff, size_t size)
-{
-	return (putsn(buff, size));
-}
-
-extern char	keyboard_next_input(void);
-
-/*
-** Quick & dirty sys_read() to handle keyboard input.
-** Doesn't take the file descriptor into account.
-*/
-int
-sys_read(int fd __unused, char *buff, size_t size)
-{
-	char c;
-
-	if (size)
-	{
-		c = keyboard_next_input();
-		if (c != '\0') {
-			buff[0] = c;
-			return (1);
-		}
-	}
-	return (0);
-}
-
-/*
-** Do the fork system call
-*/
-pid_t
-sys_fork(void)
-{
-	struct thread *new;
-
-	new = thread_fork();
-	if (new) {
-		return (new->pid);
-	}
-	return (-1);
-}
-
-/*
 ** Common handler for all syscalls
 **
 ** Arguments are in iframe->edi, iframe->esi, iframe->edx and iframe->ecx.
@@ -168,6 +140,9 @@ x86_syscalls_handler(struct iframe *iframe)
 			break;
 		case WAITPID:
 			iframe->eax = thread_waitpid(iframe->edi);
+			break;
+		case EXECVE:
+			iframe->eax = thread_execve((char const *)iframe->edi, (int (*)(void))iframe->esi);
 			break;
 		default:
 			panic("Unknown syscall %p\n", iframe->eax);

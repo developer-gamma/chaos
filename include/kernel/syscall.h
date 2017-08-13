@@ -10,6 +10,9 @@
 #ifndef _KERNEL_SYSCALL_H_
 # define _KERNEL_SYSCALL_H_
 
+# include <chaosdef.h>
+# include <kernel/thread.h>
+
 enum syscalls_values
 {
 	UNKNOWN		= 0,
@@ -21,6 +24,7 @@ enum syscalls_values
 	SBRK		= 6,
 	GETPID		= 7,
 	WAITPID		= 8,
+	EXECVE		= 9,
 };
 
 static char const *const syscalls_str[] =
@@ -34,6 +38,11 @@ static char const *const syscalls_str[] =
 	[SBRK]		= "SBRK",
 	[GETPID]	= "GETPID",
 	[WAITPID]	= "WAITPID",
+	[EXECVE]	= "EXECVE",
 };
+
+int			sys_write(int fd, char const *, size_t);
+int			sys_read(int fd, char *, size_t);
+pid_t			sys_fork(void);
 
 #endif /* !_KERNEL_SYSCALL_H_ */
