@@ -33,10 +33,10 @@ docker stop chaos
 
 echo "$logs" > /tmp/logs
 
-echo "===== LOGS ====="
+printf "===== LOGS =====\n"
 cat /tmp/logs
-echo "================"
+printf "================\n"
 
 grep "Welcome to ChaOS" /tmp/logs &> /dev/null
 
-echo "Test passed"
+printf "Test passed\n"

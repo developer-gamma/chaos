@@ -12,8 +12,8 @@
 set -e -u
 
 function print_usage {
-	echo -e "Usage: $0 [OPTIONS]"
-	echo -e "\t-b <boot_flags>		Set some addition flags to give to the kernel."
+	printf "Usage: $0 [OPTIONS]\n"
+	printf "\t-b <boot_flags>		Set some addition flags to give to the kernel.\n"
 	exit 1
 }
 
@@ -29,18 +29,18 @@ while getopts b: FLAG; do
 		b)
 			BOOT_ARGS="$OPTARG";;
 		*)
-			echo -e "Unknown option"
+			printf "Unknown option\n"
 			print_usage
 	esac
 done
 
 if [ ! -f "$BUILD_DIR/chaos.bin" ]; then
-	echo -e "  MAKE\t $RULES"
+	printf "  MAKE\t $RULES\n"
 	make -C "$PROJECT_DIR" --no-print-directory "$RULES"
 fi
 
 if ! which xorriso grub-mkrescue &> /dev/null; then
-	echo -e "  ERROR\t You must install xorriso and grub-mkrescue first"
+	printf "  ERROR\t You must install xorriso and grub-mkrescue first\n"
 	exit 1
 fi
 
@@ -60,7 +60,7 @@ EOF
 GRUB_OUTPUT=$(mktemp)
 output_iso_path="${PROJECT_DIR}/chaos.iso"
 
-echo -e "  GRUB\t chaos.iso"
+printf "  GRUB\t chaos.iso\n"
 
 if ! grub-mkrescue -o "$PROJECT_DIR/chaos.iso" "$TEMP" &> "$GRUB_OUTPUT" ; then
 	cat "$GRUB_OUTPUT"

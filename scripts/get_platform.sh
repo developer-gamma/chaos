@@ -12,13 +12,13 @@
 set -e -u
 
 if [ $# -ne 1 ]; then
-	echo "Usage: $0 <arch>"
+	printf "Usage: $0 <arch>\n"
 	exit 1
 fi
 
 case $1 in
-	x86) echo "pc";;
+	x86) printf "pc\n";;
 	*)
-		echo "unknown"
+		printf "unknown\n"
 		exit 1
 esac

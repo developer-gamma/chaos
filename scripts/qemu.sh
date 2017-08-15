@@ -15,13 +15,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$SCRIPT_DIR/../"
 
 function print_usage {
-	echo -e "Usage: $0 [OPTIONS]"
-	echo -e "\t-a <arch>		architecture (Valid values are 'x86' and 'x86_64') (Default: x86)"
-	echo -e "\t-d			debug mode"
-	echo -e "\t-t			monitor mode"
-	echo -e "\t-k			enables kvm (if available)"
-	echo -e "\t-m <MB> 		memory (in MB) (Default: 512MB)"
-	echo -e "\t-h			print this help menu"
+	printf "Usage: $0 [OPTIONS]\n"
+	printf "\t-a <arch>		architecture (Valid values are 'x86' and 'x86_64') (Default: x86)\n"
+	printf "\t-d			debug mode\n"
+	printf "\t-t			monitor mode\n"
+	printf "\t-k			enables kvm (if available)\n"
+	printf "\t-m <MB> 		memory (in MB) (Default: 512MB)\n"
+	printf "\t-h			print this help menu\n"
 	exit 1
 }
 
@@ -40,7 +40,7 @@ while getopts dtkhm:a: FLAG; do
 		a) ARCH="$OPTARG";;
 		h) print_usage;;
 		\?)
-			echo "Unknown option"
+			printf "Unknown option\n"
 			print_usage
 	esac
 done
@@ -52,7 +52,7 @@ case $ARCH in
 	"x86")		QEMU="qemu-system-i386";;
 	"x86_64")	QEMU="qemu-system-x86_64";;
 	*)
-		echo "Unknown architecture $ARCH"
+		printf "Unknown architecture $ARCH\n"
 		print_usage
 esac
 
@@ -60,7 +60,7 @@ ISO="$PROJECT_DIR/chaos.iso"
 
 if [ ! -f "$ISO" ]; then
 	RULES="chaos.iso"
-	echo -e "  MAKE\t $RULES"
+	printf "  MAKE\t $RULES\n"
 	make -C "$PROJECT_DIR" --no-print-directory $RULES
 fi
 
@@ -81,9 +81,9 @@ else
 fi
 
 if ! which "$QEMU" &> /dev/null; then
-	echo -e "  ERROR\t You must install $QEMU first"
+	printf "  ERROR\t You must install $QEMU first\n"
 	exit 1
 fi
 
-echo -e "  QEMU\t chaos.iso"
+printf "  QEMU\t chaos.iso\n"
 $QEMU $ARGS $@

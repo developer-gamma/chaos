@@ -63,11 +63,11 @@ iso:		$(ISO)
 kernel:		$(KERNEL)
 
 $(KERNEL):	$(OBJS)
-		mkdir -p $(@D) && echo -e "  MKDIR\t $(@D)"
-		$(LD) $(LDFLAGS) -o $@ $+ && echo -e "  LD\t $@"
+		mkdir -p $(@D) && printf "  MKDIR\t $(@D)\n"
+		$(LD) $(LDFLAGS) -o $@ $+ && printf "  LD\t $@\n"
 
 $(ISO):		$(KERNEL)
-		echo -e "  SHELL\t chaos-iso.sh $(BOOT_FLAGS)"
+		printf "  SHELL\t chaos-iso.sh $(BOOT_FLAGS)\n"
 		./scripts/chaos-iso.sh -b "$(BOOT_FLAGS)"
 
 clean:
@@ -75,33 +75,33 @@ clean:
 		$(RM) -r $(BUILD)
 		$(RM) $(DEP)
 		$(RM) $(ISO)
-		echo -e "  CLEAN"
+		printf "  CLEAN\n"
 
 re:		clean all
 
 run:		$(ISO)
-		echo -e "  SHELL\t qemu.sh"
+		printf "  SHELL\t qemu.sh\n"
 		./scripts/qemu.sh -m 1G -a $(ARCH)
 
 monitor:	$(ISO)
-		echo -e "  SHELL\t qemu.sh"
+		printf "  SHELL\t qemu.sh\n"
 		./scripts/qemu.sh -t -m 1G -a $(ARCH)
 
 debug:		$(ISO)
-		echo -e "  SHELL\t qemu.sh"
+		printf "  SHELL\t qemu.sh\n"
 		./scripts/qemu.sh -d -m 1G -a $(ARCH)
 
 kvm:		$(ISO)
-		echo -e "  SHELL\t qemu.sh"
+		printf "  SHELL\t qemu.sh\n"
 		./scripts/qemu.sh -d -k -m 1G -a $(ARCH)
 
 %.o:		%.asm
-		$(NASM) $(NASMFLAGS) $< -o $@ && echo -e "  NASM\t $<"
+		$(NASM) $(NASMFLAGS) $< -o $@ && printf "  NASM\t $<\n"
 
 -include	$(DEP)
 %.o:		%.c
-		$(CC) $(CFLAGS) -c $< -o $@ && echo -e "  CC\t $<"
+		$(CC) $(CFLAGS) -c $< -o $@ && printf "  CC\t $<\n"
 
 .PHONY:		all iso kernel clean re run monitor debug
 
-.SILENT:	all $(KERNEL) $(ISO) clean re run monitor debug $(OBJS)
+.SILENT:	all $(KERNEL) $(ISO) clean re run monitor debug kvm $(OBJS)

@@ -20,7 +20,7 @@ It's a unix-like featureless kernel, that only supports x86 (Intel 32 bits). My 
 
 If you are using `apt-get` as your package manager (`Debian`, `Ubuntu` etc.), you can use this command to install all dependencies:
 ```bash
-apt-get install qemu grub-pc-bin xorriso nasm
+apt-get install qemu grub-pc-bin xorriso nasm mtools
 ```
 
 If you are using `pacman` as your package manager (`ArchLinux`, `Manjaro` etc.), you can use this command instead:
