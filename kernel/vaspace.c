@@ -69,7 +69,7 @@ free_vaspace(void)
 }
 
 /*
-** Called by thread_waitpid() when waiting for a zombie thread.
+** Called by thread_zombie_exit() when waiting for a zombie thread.
 ** Used to finish cleaning up this thread, by freeing it's kernel memory.
 */
 void
@@ -80,6 +80,7 @@ free_zombie_thread(struct thread *t)
 	if (t->vaspace->ref_count == 0) {
 		kfree(t->vaspace);
 	}
+	kfree(t->cwd);
 }
 
 /*

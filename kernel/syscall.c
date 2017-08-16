@@ -7,8 +7,19 @@
 **
 \* ------------------------------------------------------------------------ */
 
+#include <kernel/filesystem.h>
+#include <kernel/thread.h>
 #include <kernel/syscall.h>
 #include <stdio.h>
+
+int
+sys_open(char const *file)
+{
+	struct fs_node *node;
+
+	node = kopen(get_current_thread()->cwd, file);
+	return (node ? -1 : 0); /* TODO */
+}
 
 /*
 ** Do the write system call.

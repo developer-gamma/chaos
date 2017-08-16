@@ -41,6 +41,7 @@ static char const *const syscalls_str[] =
 	[EXECVE]	= "EXECVE",
 };
 
+int			sys_open(char const *path);
 int			sys_write(int fd, char const *, size_t);
 int			sys_read(int fd, char *, size_t);
 pid_t			sys_fork(void);

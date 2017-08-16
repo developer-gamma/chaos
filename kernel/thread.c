@@ -7,10 +7,8 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#include <kernel/spinlock.h>
-#include <kernel/init.h>
 #include <kernel/thread.h>
-#include <kernel/interrupts.h>
+#include <kernel/kalloc.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -94,6 +92,7 @@ thread_create(char const *name, thread_entry_cb entry, size_t stack_size)
 	t->parent = get_current_thread()->parent;
 	t->vaspace = get_current_thread()->vaspace;
 	t->vaspace->ref_count++;
+	t->cwd = strdup(get_current_thread()->cwd);
 
 	t->stack_size = stack_size;
 	t->stack = mmap(NULL, stack_size, MMAP_USER | MMAP_WRITE);
@@ -143,6 +142,7 @@ thread_fork(void)
 	new->state = RUNNABLE;
 	new->parent = old;
 	new->vaspace = vaspace;
+	new->cwd = strdup(old->cwd);
 
 	arch_init_fork_thread(new);
 
@@ -183,6 +183,18 @@ thread_exit(int status)
 	thread_reschedule();
 
 	panic("Reached end of thread_exit()"); /* We shoudln't reach this portion of code. */
+}
+
+/*
+** Called when a zombie thread is waited. Used to free it's
+** kernel memory.
+*/
+void
+thread_zombie_exit(struct thread *zombie)
+{
+	free_zombie_thread(zombie);
+	zombie->state = NONE;
+	next_pid = zombie->pid;
 }
 
 /*
@@ -257,10 +269,8 @@ thread_waitpid(pid_t pid)
 	while (42) { /* TODO This is unsafe, a wakeup() approach is safer */
 		LOCK_THREAD(state);
 		if (t->state == ZOMBIE) {
-			free_zombie_thread(t);
 			val = t->exit_status;
-			t->state = NONE;
-			next_pid = t->pid;
+			thread_zombie_exit(t);
 
 			RELEASE_THREAD(state);
 			return (val);
@@ -281,6 +291,9 @@ thread_init(void)
 
 	/* Initialize the default virtual address space */
 	init_vaspace();
+
+	/* This needs to be done now to prevent strdup() with null ptr */
+	get_current_thread()->cwd = strdup("/");
 
 	/* Create the init thread */
 	t = thread_create("init", &init_routine, DEFAULT_STACK_SIZE);
@@ -303,6 +316,9 @@ thread_init(void)
 
 	/* Set the init thread as runnable */
 	t->state = RUNNABLE;
+
+	/* Free the pwd */
+	kfree(t->cwd);
 
 	/* Reschedule */
 	thread_reschedule();

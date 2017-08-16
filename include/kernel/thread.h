@@ -48,6 +48,7 @@ struct			thread
 	uchar exit_status;
 	enum thread_state state;
 	struct thread *parent;
+	char *cwd;
 
 	/* Thread stack */
 	virt_addr_t stack;

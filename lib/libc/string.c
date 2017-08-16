@@ -8,6 +8,7 @@
 \* ------------------------------------------------------------------------ */
 
 #include <string.h>
+#include <stdlib.h>
 
 size_t
 strlen(char const *str)
@@ -19,6 +20,19 @@ strlen(char const *str)
 		++s;
 	}
 	return ((size_t)(s - str));
+}
+
+char *
+strdup(char const *str)
+{
+	size_t len;
+	char *out;
+
+	len = strlen(str);
+	out = kalloc(len + 1);
+	memcpy(out, str, len);
+	*(out + len) = '\0';
+	return (out);
 }
 
 char *
@@ -51,6 +65,23 @@ strncpy(char *dest, char const *src, size_t n)
 		++i;
 	}
 	return (dest);
+}
+
+char *
+strcat(char *dest, char const *src)
+{
+	size_t len;
+	char *dest_ori;
+
+	len = strlen(dest);
+	dest_ori = dest;
+	dest += len;
+	while (*src) {
+		*dest = *src;
+		++dest;
+		++src;
+	}
+	return (dest_ori);
 }
 
 int
