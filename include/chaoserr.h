@@ -43,13 +43,13 @@ enum				status
 	ERR_ALREADY_EXIST,		/* A given unique-id is already taken */
 	ERR_ACCESS_DENIED,		/* The operation couldn't be completed because it's missing privileges */
 
-	/* Input / output errors */
-	ERR_IO,				/* I/O error */
-
 	/* Mapping errors */
 	ERR_ALREADY_MAPPED,		/* The given virtual address is already mapped */
 	ERR_NOT_MAPPED,			/* The given virtual address is not mapped*/
 	ERR_CANT_MAP,			/* The mapping can't be done (reasons may be arch-dependant) */
+
+	/* Filesystem errors */
+	ERR_ALREADY_MOUNTED,		/* The given mountpoint is already taken */
 };
 
 typedef enum status	status_t;

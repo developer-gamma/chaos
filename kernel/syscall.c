@@ -7,22 +7,11 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#include <kernel/filesystem.h>
 #include <kernel/thread.h>
-#include <kernel/syscall.h>
 #include <stdio.h>
 
-int
-sys_open(char const *file)
-{
-	struct fs_node *node;
-
-	node = kopen(get_current_thread()->cwd, file);
-	return (node ? -1 : 0); /* TODO */
-}
-
 /*
-** Do the write system call.
+** Does the write system call.
 */
 int
 sys_write(int fd __unused, char const *buff, size_t size)
@@ -33,7 +22,7 @@ sys_write(int fd __unused, char const *buff, size_t size)
 extern char	keyboard_next_input(void);
 
 /*
-** Do the read system call.
+** Does the read system call.
 */
 int
 sys_read(int fd __unused, char *buff, size_t size)
@@ -52,8 +41,8 @@ sys_read(int fd __unused, char *buff, size_t size)
 }
 
 /*
-** Do the fork system call.
-** Fork the current process and returns the new process's pid,
+** Does the fork system call.
+** Forks the current process and returns the new process's pid,
 ** or -1 if the operation failed.
 */
 pid_t
