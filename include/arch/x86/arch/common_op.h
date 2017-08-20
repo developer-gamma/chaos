@@ -17,7 +17,17 @@ atomic_exchange(volatile uint *addr, uint newval)
 			: [newval]"=a" (newval)
 			: "a" (newval), [addr]"m" (*addr)
 			: "memory");
-	return newval;
+	return (newval);
+}
+
+static inline uint
+atomic_add(volatile int *addr, int val)
+{
+	asm volatile("lock xaddl %[val], %[addr];"
+			: [val]"=a" (val)
+			: "a" (val), [addr]"m" (*addr)
+			: "memory");
+	return (val);
 }
 
 #endif /* !_ARCH_X86_ARCH_COMMON_OP_H_ */

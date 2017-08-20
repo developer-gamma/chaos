@@ -7,9 +7,19 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#ifndef _LIB_BDEV_RAMDISK_H_
-# define _LIB_BDEV_RAMDISK_H_
+#ifndef _LIB_BDEV_MEM_H_
+# define _LIB_BDEV_MEM_H_
 
 # include <kernel/bdev.h>
 
-#endif /* !_LIB_BDEV_RAMDISK_H_ */
+# define MEM_BLOCKSIZE		512
+
+struct mem_bdev
+{
+	struct bdev bdev;	/* Base device */
+	void *ptr;		/* Point where this device starts in memory */
+};
+
+status_t		register_membdev(char const *, void *, size_t);
+
+#endif /* !_LIB_BDEV_MEM_H_ */

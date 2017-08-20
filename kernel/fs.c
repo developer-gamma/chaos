@@ -12,11 +12,9 @@
 #include <kernel/list.h>
 #include <kernel/init.h>
 #include <kernel/kalloc.h>
-#include <lib/bdev/ramdisk.h>
-#include <string.h>
-
-/* Debug */
+#include <lib/bdev/mem.h>
 #include <stdio.h>
+#include <string.h>
 
 static struct list_node mounts = LIST_INIT_VALUE(mounts);
 
@@ -294,6 +292,7 @@ static void
 init_fs(enum init_level il __unused)
 {
 	printf("[..]\tFilesystem");
+	register_membdev("ramdisk", NULL, 0);
 	assert_eq(fs_mount("/", "fat16", "ramdisk"), OK);
 	printf("\r[OK]\tFilestem ('/' mounted)\n");
 }

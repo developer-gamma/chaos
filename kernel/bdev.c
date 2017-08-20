@@ -9,9 +9,45 @@
 
 #include <kernel/bdev.h>
 #include <kernel/kalloc.h>
+#include <arch/common_op.h>
 #include <string.h>
 
 static struct list_node bdev_list = LIST_INIT_VALUE(bdev_list);
+
+static inline void
+bdev_inc_ref(struct bdev *bdev)
+{
+	atomic_add(&bdev->ref_count, 1);
+}
+
+static inline void
+bdev_dec_ref(struct bdev *bdev)
+{
+	if (atomic_add(&bdev->ref_count, -1) == 1) {
+		if (bdev->close) {
+			bdev->close(bdev);
+		}
+		kfree(bdev->name);
+	}
+}
+
+status_t
+bdev_init(struct bdev *bdev,
+	  char const *name,
+	  size_t block_size,
+	  size_t block_count,
+	  uint flags)
+{
+	bdev->name = strdup(name);
+	if (bdev->name == NULL) {
+		return (ERR_NO_MEMORY);
+	}
+	bdev->block_size = block_size;
+	bdev->block_count = block_count;
+	bdev->flags = flags;
+	bdev->ref_count = 0;
+	return (OK);
+}
 
 struct bdev *
 bdev_open(char const *name)
@@ -20,6 +56,7 @@ bdev_open(char const *name)
 
 	list_foreach_content(bdev, &bdev_list, node) {
 		if (!strcmp(name, bdev->name)) {
+			bdev_inc_ref(bdev);
 			return (bdev);
 		}
 	}
@@ -29,14 +66,13 @@ bdev_open(char const *name)
 void
 bdev_close(struct bdev *bdev)
 {
-	if (bdev->close) {
-		bdev->close(bdev);
-	}
+	bdev_dec_ref(bdev);
 }
 
 void
 bdev_register(struct bdev *bdev)
 {
+	bdev_inc_ref(bdev);
 	list_add_tail(&bdev->node, &bdev_list);
 }
 
@@ -44,7 +80,5 @@ void
 bdev_unregister(struct bdev *bdev)
 {
 	list_delete(&bdev->node);
-	bdev_close(bdev);
+	bdev_dec_ref(bdev);
 }
-
-

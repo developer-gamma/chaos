@@ -11,11 +11,20 @@
 # define _KERNEL_BDEV_H_
 
 # include <kernel/list.h>
+# include <chaoserr.h>
+
+# define BDEV_FLAGS_NONE	(0b0000)
 
 struct bdev
 {
 	struct list_node node;
-	char const *name;
+	char *name;
+
+	/* infos */
+	size_t block_size;
+	size_t block_count;
+	uint flags;
+	int ref_count;
 
 	/* api */
 	ssize_t (*read)(struct bdev *, void *buf, size_t offset, size_t len);
@@ -23,6 +32,7 @@ struct bdev
 	void (*close)(struct bdev *);
 };
 
+status_t		bdev_init(struct bdev *, char const *, size_t, size_t, uint);
 struct bdev		*bdev_open(char const *name);
 void			bdev_close(struct bdev *);
 void			bdev_register(struct bdev *bdev);
