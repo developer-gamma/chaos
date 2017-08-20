@@ -37,6 +37,7 @@ struct fs_mount
 	struct bdev *bdev;
 	struct fscookie *cookie;
 	const struct fs_api *api;
+	int ref_count;
 };
 
 struct filehandler

@@ -12,6 +12,7 @@
 #include <kernel/list.h>
 #include <kernel/init.h>
 #include <kernel/kalloc.h>
+#include <arch/common_op.h>
 #include <lib/bdev/mem.h>
 #include <stdio.h>
 #include <string.h>
@@ -44,6 +45,7 @@ find_fs(char const *name)
 
 /*
 ** Searches the mount holding the given path
+** Bump the reference counter of the mount before returning
 */
 static struct fs_mount *find_mount(char const *path)
 {
@@ -59,10 +61,29 @@ static struct fs_mount *find_mount(char const *path)
 			continue;
 
 		if (!strncmp(mount->path, path, mount_path_len)) {
+			atomic_add(&mount->ref_count, 1);
 			return (mount);
 		}
 	}
 	return (NULL);
+}
+
+/*
+** Decrements the reference counter of the mount structure, which
+** may cause an unmount operation.
+*/
+static void
+put_mount(struct fs_mount *mount)
+{
+	if (atomic_add(&mount->ref_count, -1) == 0) {
+		list_delete(&mount->node);
+		mount->api->unmount(mount->cookie);
+		if (mount->bdev) {
+			bdev_close(mount->bdev);
+		}
+		kfree(mount->path);
+		kfree(mount);
+	}
 }
 
 /*
@@ -110,6 +131,7 @@ mount(char const *path, char const *device, struct fs_api *const api)
 	mount->bdev = bdev;
 	mount->cookie = cookie;
 	mount->api = api;
+	mount->ref_count = 1;
 
 	list_add(&mount->node, &mounts);
 	return (OK);
@@ -143,16 +165,16 @@ fs_unmount(char const *path)
 	if (unlikely(!tmp)) {
 		return (ERR_NO_MEMORY);
 	}
-
+	resolve_path(tmp);
 	mount = find_mount(path);
-	if (mount) {
-		list_delete(&mount->node);
-		mount->api->unmount(mount->cookie);
-		mount->bdev->close(mount->bdev);
-		kfree(mount);
-		return (OK);
+	kfree(tmp);
+	if (!mount) {
+		return (ERR_NOT_FOUND);
 	}
-	return (ERR_NOT_FOUND);
+
+	put_mount(mount); /* First one for the find_mount() that brought us here*/
+	put_mount(mount); /* Second one for mount() when creating the mount point */
+	return (OK);
 }
 
 /*
@@ -292,8 +314,13 @@ static void
 init_fs(enum init_level il __unused)
 {
 	printf("[..]\tFilesystem");
+
+	/* Set up ramdisk */
 	register_membdev("ramdisk", NULL, 0);
+
+	/* Mount ramdisk on root */
 	assert_eq(fs_mount("/", "fat16", "ramdisk"), OK);
+
 	printf("\r[OK]\tFilestem ('/' mounted)\n");
 }
 
