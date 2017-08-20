@@ -57,11 +57,14 @@ struct fs_hook
 	struct fs_api *api;
 };
 
-# define NEW_FILESYSTEM(name, api) \
+status_t	fs_mount(char const *p, char const *fs, char const *dev);
+status_t	fs_unmount(char const *path);
+
+# define NEW_FILESYSTEM(n, a)						\
 	__aligned(sizeof(void*)) __used __section("fs_hook")		\
-	static const struct fs_hook _fs_hook_##name = {			\
-		.name = #name,						\
-		.api = api,						\
+	static const struct fs_hook _fs_hook_##n = {			\
+		.name = #n,						\
+		.api = a,						\
 	}
 
 

@@ -31,7 +31,7 @@ struct list_node
 	} while (0);
 
 # define LIST_INIT_VALUE(list) { &(list), &(list) }
-# define LIST_CLEAR_VALUE(list) { NULL, NULL }
+# define LIST_CLEAR_VALUE { NULL, NULL }
 
 /*
 ** Adds a new node to the list between the two specified node.

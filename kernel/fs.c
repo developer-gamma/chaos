@@ -12,6 +12,7 @@
 #include <kernel/list.h>
 #include <kernel/init.h>
 #include <kernel/kalloc.h>
+#include <lib/bdev/ramdisk.h>
 #include <string.h>
 
 /* Debug */
@@ -116,6 +117,9 @@ mount(char const *path, char const *device, struct fs_api *const api)
 	return (OK);
 }
 
+/*
+** Mount a filesystem at a given path.
+*/
 status_t
 fs_mount(char const *path, char const *fs_name, char const *device)
 {
@@ -128,6 +132,9 @@ fs_mount(char const *path, char const *fs_name, char const *device)
 	return (mount(path, device, hook->api));
 }
 
+/*
+** Unmounts a filesystem mounted at the given path.
+*/
 status_t
 fs_unmount(char const *path)
 {
@@ -286,7 +293,9 @@ resolve_path(char *path)
 static void
 init_fs(enum init_level il __unused)
 {
-	printf("[OK]\tFilesystem\n");
+	printf("[..]\tFilesystem");
+	assert_eq(fs_mount("/", "fat16", "ramdisk"), OK);
+	printf("\r[OK]\tFilestem ('/' mounted)\n");
 }
 
 NEW_INIT_HOOK(filesystem, &init_fs, CHAOS_INIT_LEVEL_FILESYSTEM);

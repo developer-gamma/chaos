@@ -32,7 +32,6 @@ bdev_close(struct bdev *bdev)
 	if (bdev->close) {
 		bdev->close(bdev);
 	}
-	kfree(bdev->name);
 }
 
 void

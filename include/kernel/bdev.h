@@ -15,11 +15,11 @@
 struct bdev
 {
 	struct list_node node;
-	char *name;
+	char const *name;
 
 	/* api */
-	ssize_t (*read)(struct bdev *, void *buff, size_t offset, size_t len);
-	ssize_t (*write)(struct bdev *, void const *buff, size_t offset, size_t len);
+	ssize_t (*read)(struct bdev *, void *buf, size_t offset, size_t len);
+	ssize_t (*write)(struct bdev *, void const *buf, size_t offset, size_t len);
 	void (*close)(struct bdev *);
 };
 
