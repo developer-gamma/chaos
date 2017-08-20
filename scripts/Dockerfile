@@ -10,7 +10,7 @@
 FROM buildpack-deps:stretch
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends qemu grub-pc-bin xorriso nasm clang \
+    && apt-get install -y --no-install-recommends qemu grub-pc-bin xorriso nasm clang mtools dosfstools \
     && mkdir /chaos
 
 WORKDIR /chaos
