@@ -11,8 +11,8 @@
 ** Architecture independant virtual memory management.
 */
 
-#include <kernel/init.h>
 #include <kernel/vmm.h>
+#include <kernel/init.h>
 #include <kernel/thread.h>
 #include <kernel/interrupts.h>
 #include <stdio.h>
@@ -232,6 +232,9 @@ vmm_init(enum init_level il __unused)
 
 	/* Allocate the first heap page or the kbrk algorithm will not work. */
 	assert_neq(mmap(kernel_heap_start, PAGE_SIZE, MMAP_WRITE), NULL);
+
+	/* Mark initrd as allocated & accessible */
+	arch_vmm_mark_initrd();
 
 	printf("[OK]\tVirtual Memory Management\n");
 }

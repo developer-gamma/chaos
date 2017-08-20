@@ -12,6 +12,7 @@
 #include <kernel/list.h>
 #include <kernel/init.h>
 #include <kernel/kalloc.h>
+#include <kernel/multiboot.h>
 #include <arch/common_op.h>
 #include <lib/bdev/mem.h>
 #include <stdio.h>
@@ -362,13 +363,19 @@ static void
 init_fs(enum init_level il __unused)
 {
 	printf("[..]\tFilesystem");
+	if (multiboot_infos.initrd.present)
+	{
+		/* Set up initrd */
+		assert_eq(register_membdev(
+				"initrd",
+				multiboot_infos.initrd.vstart,
+				multiboot_infos.initrd.size
+			), OK);
 
-	/* Set up ramdisk */
-	register_membdev("ramdisk", NULL, 0);
+		/* Mount initrd on root */
+		assert_eq(fs_mount("/", "fat16", "initrd"), OK);
 
-	/* Mount ramdisk on root */
-	assert_eq(fs_mount("/", "fat16", "ramdisk"), OK);
-
+	}
 	printf("\r[OK]\tFilestem ('/' mounted)\n");
 }
 

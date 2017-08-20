@@ -176,6 +176,13 @@ pmm_reset(void)
 
 	/* Mark the kernel as allocated */
 	mark_range_as_allocated(0, KERNEL_PHYSICAL_END);
+
+	/* Mark the initrd as allocated */
+	if (multiboot_infos.initrd.present) {
+		assert(IS_PAGE_ALIGNED(multiboot_infos.initrd.pstart));
+		assert(IS_PAGE_ALIGNED(multiboot_infos.initrd.pend));
+		mark_range_as_allocated(multiboot_infos.initrd.pstart, multiboot_infos.initrd.pend);
+	}
 }
 
 /*

@@ -16,6 +16,7 @@ It's a unix-like featureless kernel, that only supports x86 (Intel 32 bits). My 
 * `make`
 * `gcc` or `clang`
 * `grub-mkrescue` and `xorriso` (generally packed with other binaries as `grub`)
+* `mtools`
 * `qemu` (cpu emulator) *optional*
 
 If you are using `apt-get` as your package manager (`Debian`, `Ubuntu` etc.), you can use this command to install all dependencies:

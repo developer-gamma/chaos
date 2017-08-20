@@ -56,6 +56,11 @@ void			arch_munmap_va(virt_addr_t va);
 */
 void			arch_vmm_init(void);
 
+/*
+** Mark initrd as allocated & accessible
+*/
+void			arch_vmm_mark_initrd(void);
+
 virt_addr_t		mmap(virt_addr_t va, size_t size, mmap_flags_t);
 void			munmap(virt_addr_t va, size_t size);
 status_t		kbrk(virt_addr_t new_brk);

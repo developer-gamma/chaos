@@ -8,6 +8,8 @@
 \* ------------------------------------------------------------------------ */
 
 #include <kernel/unit-tests.h>
+#include <kernel/kalloc.h>
+#include <kernel/multiboot.h>
 #include <arch/x86/vmm.h>
 #include <arch/x86/asm.h>
 #include <stdio.h>
@@ -136,6 +138,36 @@ set_paddr(virt_addr_t va, phys_addr_t pa)
 		return (old);
 	}
 	return (NULL_FRAME);
+}
+
+/*
+** Marks the initrd as allocated & accessible.
+*/
+void
+arch_vmm_mark_initrd(void)
+{
+	void *initrd;
+	size_t i;
+
+	/* Allocate the initrd */
+	if (multiboot_infos.initrd.present) {
+
+		/* Page alignment tricks (TODO add a page-aligned alocator */
+		initrd = kalloc(multiboot_infos.initrd.size + 2 * PAGE_SIZE);
+		assert_neq(initrd, NULL);
+
+		/* We don't give a shit about losing the pointer, we will never kfree() it.*/
+		initrd = (void *)ALIGN((uintptr)initrd, PAGE_SIZE);
+
+		i = 0;
+		while (i < multiboot_infos.initrd.size) {
+			free_frame(get_paddr(initrd + i));
+			set_paddr(initrd + i, multiboot_infos.initrd.pstart + i);
+			i += PAGE_SIZE;
+		}
+		multiboot_infos.initrd.vstart = initrd;
+		multiboot_infos.initrd.vend = initrd + multiboot_infos.initrd.size;
+	}
 }
 
 void

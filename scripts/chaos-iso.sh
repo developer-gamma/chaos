@@ -48,12 +48,14 @@ TEMP=$(mktemp -d)
 
 mkdir -p "$TEMP/boot/grub"
 cp "$BUILD_DIR/chaos.bin" "$TEMP/boot/chaos.bin"
+cp "$BUILD_DIR/initrd.img" "$TEMP/boot/initrd.img"
 
 cat > "$TEMP/boot/grub/grub.cfg" << EOF
 set timeout=0
 
 menuentry "ChaOS" {
 	multiboot2 /boot/chaos.bin ${BOOT_ARGS}
+	module2 /boot/initrd.img
 }
 EOF
 

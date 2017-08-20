@@ -10,12 +10,22 @@
 #ifndef _KERNEL_MULTIBOOT_H_
 # define _KERNEL_MULTIBOOT_H_
 
-# include <chaosdef.h>
+# include <kernel/pmm.h>
 # include <multiboot2.h>
 
 struct cmd_options
 {
 	bool unit_test;
+};
+
+struct initrd_infos
+{
+	bool present;
+	phys_addr_t pstart;
+	phys_addr_t pend;
+	void *vstart;
+	void *vend;
+	size_t size;
 };
 
 struct multiboot_info
@@ -27,6 +37,7 @@ struct multiboot_info
 	multiboot_memory_map_t *mmap;
 	multiboot_memory_map_t *mmap_end;
 	size_t mmap_entry_size;
+	struct initrd_infos initrd;
 };
 
 extern struct cmd_options cmd_options;

@@ -22,7 +22,7 @@ BOOT_FLAGS	= $(boot_flags)
 CC		?= gcc
 CFLAGS		+= \
 			-m32 \
-			-MMD \
+			-MD \
 			-mno-sse \
 			-mno-sse2 \
 			-mno-sse3 \
@@ -43,7 +43,7 @@ CFLAGS		+= \
 			-isystem include \
 			-isystem include/lib/libc \
 			-isystem include/arch/$(ARCH)/
-SRC_C		:= $(shell find "arch/$(ARCH)/" "platform/$(PLATFORM)" kernel lib  userspace -name *.c)
+SRC_C		:= $(shell find "arch/$(ARCH)/" "platform/$(PLATFORM)" kernel lib -name *.c) userspace/shell.c
 DEP		:= $(SRC_C:.c=.d)
 
 # Assembly
@@ -60,13 +60,17 @@ all:		$(ISO)
 
 iso:		$(ISO)
 
+initrd:
+		make -C userspace --no-print-directory
+		ln -fs $(shell pwd)/userspace/initrd.img build/initrd.img
+
 kernel:		$(KERNEL)
 
 $(KERNEL):	$(OBJS)
 		mkdir -p $(@D) && printf "  MKDIR\t $(@D)\n"
 		$(LD) $(LDFLAGS) -o $@ $+ && printf "  LD\t $@\n"
 
-$(ISO):		$(KERNEL)
+$(ISO):		$(KERNEL) initrd
 		printf "  SHELL\t chaos-iso.sh $(BOOT_FLAGS)\n"
 		./scripts/chaos-iso.sh -b "$(BOOT_FLAGS)"
 
@@ -75,6 +79,7 @@ clean:
 		$(RM) -r $(BUILD)
 		$(RM) $(DEP)
 		$(RM) $(ISO)
+		make -C userspace --no-print-directory clean
 		printf "  CLEAN\n"
 
 re:		clean all
@@ -102,6 +107,6 @@ kvm:		$(ISO)
 %.o:		%.c
 		$(CC) $(CFLAGS) -c $< -o $@ && printf "  CC\t $<\n"
 
-.PHONY:		all iso kernel clean re run monitor debug
+.PHONY:		all iso kernel clean re run monitor debug initrd
 
-.SILENT:	all $(KERNEL) $(ISO) clean re run monitor debug kvm $(OBJS)
+.SILENT:	all $(KERNEL) $(ISO) initrd clean re run monitor debug kvm $(OBJS)

@@ -66,11 +66,17 @@ multiboot_load(void)
 			multiboot_infos.mmap_entry_size = ((struct multiboot_tag_mmap *)tag)->entry_size;
 			multiboot_infos.mmap_end = (multiboot_memory_map_t *)((uchar *)tag + tag->size);
 			break;
+		case MULTIBOOT_TAG_TYPE_MODULE:
+			multiboot_infos.initrd.present = true;
+			multiboot_infos.initrd.pstart = ((struct multiboot_tag_module *)tag)->mod_start;
+			multiboot_infos.initrd.pend = ((struct multiboot_tag_module *)tag)->mod_end;
+			break;
 		}
 		tag = (struct multiboot_tag *)((uchar *)tag + ((tag->size + 7) & ~7));
 	}
+	multiboot_infos.initrd.size = multiboot_infos.initrd.pend - multiboot_infos.initrd.pstart;
 	parse_cmd_options();
-	printf("\r[OK]\tMultiboot [%s] [%s]\n", multiboot_infos.bootloader, multiboot_infos.args);
+	printf("\r[OK]\tMultiboot [%s] [%s] [%r]\n", multiboot_infos.bootloader, multiboot_infos.args, multiboot_infos.initrd.size);
 }
 
 static void
