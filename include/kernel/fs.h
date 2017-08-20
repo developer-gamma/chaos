@@ -27,6 +27,8 @@ struct fs_api
 {
 	status_t (*mount)(struct bdev *, struct fscookie **);
 	status_t (*unmount)(struct fscookie *);
+	status_t (*open)(struct fscookie *, char const *, struct filecookie **);
+	status_t (*close)(struct filecookie *);
 };
 
 struct fs_mount
@@ -42,7 +44,7 @@ struct fs_mount
 
 struct filehandler
 {
-	struct fscookie *cookie;
+	struct filecookie *cookie;
 	struct fs_mount *mount;
 };
 
@@ -60,6 +62,8 @@ struct fs_hook
 
 status_t	fs_mount(char const *p, char const *fs, char const *dev);
 status_t	fs_unmount(char const *path);
+status_t	fs_open(char const *path, struct filehandler **handler);
+status_t	fs_close(struct filehandler *handler);
 
 # define NEW_FILESYSTEM(n, a)						\
 	__aligned(sizeof(void*)) __used __section("fs_hook")		\

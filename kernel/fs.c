@@ -177,6 +177,54 @@ fs_unmount(char const *path)
 	return (OK);
 }
 
+status_t
+fs_open(char const *path, struct filehandler **handler)
+{
+	struct filehandler *fh;
+	struct filecookie *cookie;
+	struct fs_mount *mount;
+	status_t err;
+	char *tmp;
+
+	tmp = strdup(path);
+	if (!tmp) {
+		return (ERR_NO_MEMORY);
+	}
+	resolve_path(tmp);
+
+	mount = find_mount(tmp);
+	kfree(tmp);
+	if (!mount) {
+		return (ERR_NOT_FOUND);
+	}
+
+	err = mount->api->open(mount->cookie, tmp, &cookie);
+	if (err) {
+		put_mount(mount);
+		return (err);
+	}
+
+	fh = kalloc(sizeof(struct filehandler));
+	fh->cookie = cookie;
+	fh->mount = mount;
+	*handler = fh;
+	return (OK);
+}
+
+status_t
+fs_close(struct filehandler *handler)
+{
+	status_t err;
+
+	err = handler->mount->api->close(handler->cookie);
+	if (err) {
+		return (err);
+	}
+	put_mount(handler->mount);
+	kfree(handler);
+	return (OK);
+}
+
 /*
 **
 ** Resolves the given path, by removing double separators, '.' and '..'.

@@ -24,10 +24,24 @@ fat16_unmount(struct fscookie *cookie __unused)
 	return (OK);
 }
 
+static status_t
+fat16_open(struct fscookie *cookie __unused, char const *path __unused, struct filecookie **cokie __unused)
+{
+	return (OK);
+}
+
+static status_t
+fat16_close(struct filecookie *cookie __unused)
+{
+	return (OK);
+}
+
 static struct fs_api fat16_api =
 {
 	.mount = &fat16_mount,
 	.unmount = &fat16_unmount,
+	.open = &fat16_open,
+	.close = &fat16_close,
 };
 
 NEW_FILESYSTEM(fat16, &fat16_api);
