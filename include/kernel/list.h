@@ -52,7 +52,7 @@ list_add_between(struct list_node *new, struct list_node *prev, struct list_node
 static inline void
 list_add(struct list_node *new, struct list_node *head)
 {
-	list_add_betwen(new, head, head->next);
+	list_add_between(new, head, head->next);
 }
 
 /*

@@ -19,8 +19,8 @@
 
 static struct list_node mounts = LIST_INIT_VALUE(mounts);
 
-extern struct fs_hook const __fs_hook_start;
-extern struct fs_hook const __fs_hook_end;
+extern struct fs_hook const __start_fs_hook[] __weak;
+extern struct fs_hook const __end_fs_hook[] __weak;
 
 static void resolve_path(char *path);
 
@@ -32,8 +32,8 @@ find_fs(char const *name)
 {
 	struct fs_hook const *hook;
 
-	hook = &__fs_hook_start;
-	while (hook == &__fs_hook_end)
+	hook = __start_fs_hook;
+	while (hook != __end_fs_hook)
 	{
 		if (!strcmp(hook->name, name)) {
 			return (hook);
