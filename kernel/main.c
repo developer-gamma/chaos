@@ -7,6 +7,7 @@
 **
 \* ------------------------------------------------------------------------ */
 
+#include <kernel/unit_tests.h>
 #include <kernel/init.h>
 #include <kernel/thread.h>
 
@@ -18,6 +19,9 @@ kernel_main(void)
 {
 	/* Put us in the boot thread */
 	thread_early_init();
+
+	/* Ensure libc is working correctly */
+	trigger_unit_tests(UNIT_TEST_LEVEL_LIBC);
 
 	/* Go through all init levels */
 	kernel_init_level(CHAOS_INIT_LEVEL_EARLIEST, CHAOS_INIT_LEVEL_LATEST);

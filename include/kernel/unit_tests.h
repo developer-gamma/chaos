@@ -14,10 +14,9 @@
 
 enum unit_test_level
 {
-	UNIT_TEST_LEVEL_EARLY		= CHAOS_INIT_LEVEL_UTESTS_EARLY,
-	UNIT_TEST_LEVEL_PMM		= CHAOS_INIT_LEVEL_UTESTS_PMM,
-	UNIT_TEST_LEVEL_VMM		= CHAOS_INIT_LEVEL_UTESTS_VMM,
-	UNIT_TEST_LEVEL_NORMAL		= CHAOS_INIT_LEVEL_UTESTS
+	UNIT_TEST_LEVEL_LIBC		= 0,
+	UNIT_TEST_LEVEL_PMM,
+	UNIT_TEST_LEVEL_VMM,
 };
 
 typedef void(*unit_test_hook_funcptr)(void);
@@ -36,5 +35,7 @@ struct unit_test_hook
 		.hook = h,						\
 		.name = #n,						\
 	}
+
+void			trigger_unit_tests(enum unit_test_level utl);
 
 #endif /* !_KERNEL_UNIT_TESTS */

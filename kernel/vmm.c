@@ -15,6 +15,7 @@
 #include <kernel/init.h>
 #include <kernel/thread.h>
 #include <kernel/interrupts.h>
+#include <kernel/unit_tests.h>
 #include <stdio.h>
 
 /* Heap main variables */
@@ -232,6 +233,8 @@ vmm_init(enum init_level il __unused)
 
 	/* Allocate the first heap page or the kbrk algorithm will not work. */
 	assert_neq(mmap(kernel_heap_start, PAGE_SIZE, MMAP_WRITE), NULL);
+
+	trigger_unit_tests(UNIT_TEST_LEVEL_VMM);
 
 	/* Mark initrd as allocated & accessible */
 	arch_vmm_mark_initrd();

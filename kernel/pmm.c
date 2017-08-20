@@ -9,7 +9,7 @@
 
 #include <kernel/init.h>
 #include <kernel/pmm.h>
-#include <kernel/unit-tests.h>
+#include <kernel/unit_tests.h>
 #include <kernel/multiboot.h>
 #include <string.h>
 #include <stdio.h>
@@ -149,17 +149,19 @@ nb_free_frames(void)
 }
 
 /*
-** Reset the Physical Memory Manager.
+** Initializes the frame allocator.
 */
 static void
-pmm_reset(void)
+pmm_init(enum init_level il __unused)
 {
 	multiboot_memory_map_t *mmap;
 
-	next_frame = 0u;
+	/* Trigger pmm unit tests before anything else */
+	trigger_unit_tests(UNIT_TEST_LEVEL_PMM);
 
-	/* Mark everything as allocated */
+	/* Reset the allocator's datas, by mapping the whole memory as allocated */
 	memset(frame_bitmap, 0xFF, sizeof(frame_bitmap));
+	next_frame = 0;
 
 	/* Parse the multiboot structure to mark memory areas that aren't available */
 	mmap = multiboot_infos.mmap;
@@ -183,26 +185,20 @@ pmm_reset(void)
 		assert(IS_PAGE_ALIGNED(multiboot_infos.initrd.pend));
 		mark_range_as_allocated(multiboot_infos.initrd.pstart, multiboot_infos.initrd.pend);
 	}
-}
 
-/*
-** Initializes the frame allocator.
-*/
-static void
-pmm_init(enum init_level il __unused)
-{
-	pmm_reset();
 	printf("[OK]\tPhysical Memory Managment (Size: %r)\n", (multiboot_infos.mem_stop - multiboot_infos.mem_start) * 1024u);
 }
 
 /*
 ** Some unit tests for the frame allocator.
+** These tests completely scratch the allocator.
 */
 static void
 pmm_test(void)
 {
 	/* Mark everything as free for the unit tests (will be reversed after) */
 	memset(frame_bitmap, 0x00, sizeof(frame_bitmap));
+	next_frame = 0;
 
 	assert(!is_frame_allocated(0xfffff000));
 	mark_frame_as_allocated(0xfffff000);
@@ -235,9 +231,6 @@ pmm_test(void)
 	assert_eq(alloc_frame(), NULL_FRAME);
 	assert(is_frame_allocated(0x0));
 	assert(is_frame_allocated(0xfffff000));
-
-	/* Reset PMM */
-	pmm_reset();
 }
 
 NEW_INIT_HOOK(pmm, &pmm_init, CHAOS_INIT_LEVEL_PMM);

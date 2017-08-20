@@ -35,7 +35,7 @@ x86_pagefault_handler(struct iframe *iframe __unused)
 {
 	uintptr addr;
 
-	if (unlikely(get_current_thread()->pid == 1)) /* Usefull for boot crash */
+	if (unlikely(get_current_thread()->pid <= 1)) /* Usefull for early boot crash */
 	{
 		addr = get_cr2();
 		printf("Page Fault at address %#p.\n"

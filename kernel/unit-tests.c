@@ -9,7 +9,7 @@
 
 #include <kernel/init.h>
 #include <kernel/multiboot.h>
-#include <kernel/unit-tests.h>
+#include <kernel/unit_tests.h>
 #include <stdio.h>
 
 extern struct unit_test_hook const __start_chaos_unit_tests[] __weak;
@@ -23,22 +23,18 @@ trigger_unit_test_hooks(enum unit_test_level utl)
 	for (hook = __start_chaos_unit_tests; hook < __stop_chaos_unit_tests; ++hook)
 	{
 		if (hook->level == utl) {
-			printf("[..]\tUnit tests (%s)...", hook->name);
+			printf("[..]\tUnit tests (%s)", hook->name);
 			hook->hook();
-			printf("\r[OK]\tUnit tests (%s)... Done!\n", hook->name);
+			printf("\r[OK]\tUnit tests (%s)\n", hook->name);
 		}
 	}
 }
-static void
-unit_tests(enum init_level il)
+
+void
+trigger_unit_tests(enum unit_test_level utl)
 {
 	if (cmd_options.unit_test)
 	{
-		trigger_unit_test_hooks((uint)il);
+		trigger_unit_test_hooks(utl);
 	}
 }
-
-NEW_INIT_HOOK(unit_tests_early, &unit_tests, CHAOS_INIT_LEVEL_UTESTS_EARLY);
-NEW_INIT_HOOK(unit_tests_pmm, &unit_tests, CHAOS_INIT_LEVEL_UTESTS_PMM);
-NEW_INIT_HOOK(unit_tests_vmm, &unit_tests, CHAOS_INIT_LEVEL_UTESTS_VMM);
-NEW_INIT_HOOK(unit_tests_normal, &unit_tests, CHAOS_INIT_LEVEL_UTESTS);

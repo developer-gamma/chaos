@@ -7,7 +7,7 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#include <kernel/unit-tests.h>
+#include <kernel/unit_tests.h>
 #include <kernel/kalloc.h>
 #include <kernel/multiboot.h>
 #include <arch/x86/vmm.h>

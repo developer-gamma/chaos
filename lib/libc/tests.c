@@ -7,7 +7,7 @@
 **
 \* ------------------------------------------------------------------------ */
 
-#include <kernel/unit-tests.h>
+#include <kernel/unit_tests.h>
 #include <debug.h>
 #include <string.h>
 
@@ -114,4 +114,4 @@ libc_tests(void)
 	strstr_tests();
 }
 
-NEW_UNIT_TEST(libc, &libc_tests, UNIT_TEST_LEVEL_NORMAL);
+NEW_UNIT_TEST(libc, &libc_tests, UNIT_TEST_LEVEL_LIBC);
