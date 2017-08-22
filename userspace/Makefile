@@ -36,13 +36,8 @@ LDFLAGS		:= -m elf_i386
 all:		$(INITRD)
 
 $(INITRD):	$(BINS)
-		touch $@
-		printf "  DD\t $@\n"
-		dd if=/dev/zero of=$@ bs=1024 count=1024 2> /tmp/dd_err || cat /tmp/dd_err
-		printf "  MKFS\t $@\n"
-		/sbin/mkfs.fat -F 16 $@ > /tmp/mkfs_err 2>&1 || cat /tmp/mkfs_err
-		mcopy -i $@ $(BINS) ::/
-		printf "  MCOPY\t $(BINS) -> $@\n"
+		printf "  SHELL\t initrd.sh\n"
+		../scripts/initrd.sh
 
 clean:
 		$(RM) $(addsuffix .o, $(BINS))

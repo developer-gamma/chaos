@@ -60,7 +60,6 @@ menuentry "ChaOS" {
 EOF
 
 GRUB_OUTPUT=$(mktemp)
-output_iso_path="${PROJECT_DIR}/chaos.iso"
 
 printf "  GRUB\t chaos.iso\n"
 
