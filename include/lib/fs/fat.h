@@ -17,6 +17,13 @@
 
 struct bdev;
 
+enum fat_type
+{
+	FAT_12,
+	FAT_16,
+	FAT_32,
+};
+
 struct fs_fat
 {
 	struct bdev *dev;
@@ -33,9 +40,10 @@ struct fs_fat
 	uint32 root_entry_count;	/* Numbers of entries in the root sector */
 	uint32 root_start;		/* Number of the sector where the root starts */
 	uint32 data_start;
+	uint32 data_sectors;
 	uint32 total_clusters;
 
-	uint32 fat_type;		/* Fat16 or Fat32 ? */
+	enum fat_type fat_type;		/* Fat12, Fat16 or Fat32 ? */
 };
 
 /* Note: fat datas are little endian */

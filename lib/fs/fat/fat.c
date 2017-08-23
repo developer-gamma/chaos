@@ -84,8 +84,10 @@ fat_mount(struct bdev *bdev, struct fscookie **fscookie)
 		fat->root_entry_count = fat_read16(br, 0x11);
 		fat->root_start = fat->reserved_sectors + fat->fat_count * fat->sectors_per_fat;
 		fat->data_start = fat->root_start + fat->root_entry_count * 0x20 / fat->bytes_per_sector;
-		fat->total_clusters = (fat->total_sectors - fat->data_start) / fat->sectors_per_cluster;
-		fat->fat_type = 16;
+		fat->data_sectors = (fat->total_sectors - fat->data_start);
+		fat->total_clusters = fat->data_sectors / fat->sectors_per_cluster;
+
+		fat->fat_type = FAT_16;
 	}
 
 	fat->bytes_per_cluster = fat->sectors_per_cluster * fat->bytes_per_sector;

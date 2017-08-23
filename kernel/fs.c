@@ -374,7 +374,6 @@ init_fs(enum init_level il __unused)
 
 		/* Mount initrd on root */
 		assert_eq(fs_mount("/", "fat16", "initrd"), OK);
-
 	}
 	printf("\r[OK]\tFilestem ('/' mounted)\n");
 }
