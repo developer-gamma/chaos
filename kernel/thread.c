@@ -9,6 +9,7 @@
 
 #include <kernel/thread.h>
 #include <kernel/kalloc.h>
+#include <kernel/fs.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -120,6 +121,7 @@ thread_fork(void)
 	struct vaspace *vaspace;
 	struct thread *new;
 	struct thread *old;
+	size_t i;
 
 	LOCK_THREAD(state);
 
@@ -143,6 +145,19 @@ thread_fork(void)
 	new->parent = old;
 	new->vaspace = vaspace;
 	new->cwd = strdup(old->cwd);
+
+	/* clone file descriptors */
+	new->fd_tab = kalloc(old->fd_size * sizeof(*old->fd_tab));
+	assert_neq(new->fd_tab, NULL);
+	new->fd_size = old->fd_size;
+	for (i = 0; i < old->fd_size; ++i)
+	{
+		new->fd_tab[i].taken = old->fd_tab[i].taken;
+		if (old->fd_tab[i].taken) {
+			new->fd_tab[i].handler = fs_dup_handler(old->fd_tab[i].handler);
+			assert_neq(new->fd_tab[i].handler, NULL);
+		}
+	}
 
 	arch_init_fork_thread(new);
 
@@ -195,6 +210,7 @@ thread_zombie_exit(struct thread *zombie)
 	free_zombie_thread(zombie);
 	zombie->state = NONE;
 	next_pid = zombie->pid;
+	kfree(zombie->fd_tab);
 }
 
 /*
@@ -300,6 +316,70 @@ thread_getcwd(char *buff, size_t buffsize)
 	buff[path_len] = '\0';
 	RELEASE_THREAD(state);
 	return (buff);
+}
+
+/*
+** Looks for a free file descriptor and returns it, or -1 on error.
+*/
+int
+thread_reserve_fd(void)
+{
+	size_t i;
+	struct thread *t;
+	struct filedesc *tmp;
+
+	i = 0;
+	t = get_current_thread();
+	LOCK_THREAD(state);
+	while (i < t->fd_size)
+	{
+		if (!t->fd_tab[i].taken) {
+			goto fd_found;
+		}
+		++i;
+	}
+	tmp = krealloc(t->fd_tab, (i + 1) * sizeof(*t->fd_tab));
+	if (tmp == NULL) {
+		RELEASE_THREAD(state);
+		return (-1);
+	}
+	t->fd_size = i + 1;
+	t->fd_tab = tmp;
+fd_found:
+	t->fd_tab[i].taken = true;
+	RELEASE_THREAD(state);
+	return (i);
+}
+
+/*
+** Set the file handler for the given file descriptor.
+** The filedescriptor must be valid, or the behaviour is undefined.
+*/
+void
+thread_set_fd_handler(int fd, struct filehandler *hd)
+{
+	get_current_thread()->fd_tab[fd].handler = hd;
+}
+
+/*
+** Mark the given fd as free. Doesn't care about the file handler inside,
+*/
+void
+thread_free_fd(int fd)
+{
+	get_current_thread()->fd_tab[fd].taken = false;
+	get_current_thread()->fd_tab[fd].handler = NULL;
+}
+
+/*
+** Returns the handler for the given file descriptor
+*/
+struct filehandler *
+thread_get_fd_handler(int fd)
+{
+	if (get_current_thread()->fd_tab[fd].taken)
+		return (get_current_thread()->fd_tab[fd].handler);
+	return (NULL);
 }
 
 /*

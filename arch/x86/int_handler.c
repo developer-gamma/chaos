@@ -158,10 +158,10 @@ x86_syscalls_handler(struct iframe *iframe)
 			iframe->eax = (uintptr)thread_getcwd((char *)iframe->edi, (size_t)iframe->esi);
 			break;
 		case OPEN:
-			iframe->eax = -1; /* TODO */
+			iframe->eax = sys_open((char const *)iframe->edi);
 			break;
 		case CLOSE:
-			iframe->eax = -1; /* TODO */
+			iframe->eax = sys_close(iframe->edi);
 			break;
 		default:
 			panic("Unknown syscall %p\n", iframe->eax);

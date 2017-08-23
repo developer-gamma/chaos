@@ -40,6 +40,14 @@ static char const *thread_state_str[] =
 	[ZOMBIE]	= "ZOMBIE",
 };
 
+struct filehandler;
+
+struct filedesc
+{
+	bool taken;
+	struct filehandler *handler;
+};
+
 struct			thread
 {
 	/* Thread basic infos*/
@@ -49,6 +57,10 @@ struct			thread
 	enum thread_state state;
 	struct thread *parent;
 	char *cwd;
+
+	/* File descriptors */
+	struct filedesc *fd_tab;
+	size_t fd_size;
 
 	/* Thread stack */
 	virt_addr_t stack;
@@ -70,6 +82,10 @@ int			init_routine(void);
 
 struct thread		*thread_fork(void);
 struct thread		*thread_create(char const *name, thread_entry_cb entry, size_t stack_size);
+int			thread_reserve_fd(void);
+void			thread_set_fd_handler(int fd, struct filehandler *hd);
+void			thread_free_fd(int fd);
+struct			filehandler *thread_get_fd_handler(int fd);
 void			thread_dump(void);
 void			thread_yield(void);
 void			thread_reschedule(void);

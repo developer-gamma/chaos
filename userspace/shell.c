@@ -109,7 +109,7 @@ exec_ls(void)
 	assert_neq(fd, -1);
 
 	/* Do stuff here */
-	puts("file1\nfile2\nfil3\n");
+	puts("file1\nfile2\nfile3\n");
 
 	close(fd);
 	exit();

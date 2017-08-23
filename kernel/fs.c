@@ -18,15 +18,11 @@
 #include <stdio.h>
 #include <string.h>
 
-static struct list_node mounts = LIST_INIT_VALUE(mounts);
-
 extern struct fs_hook const __start_fs_hook[] __weak;
 extern struct fs_hook const __end_fs_hook[] __weak;
 
-static void resolve_path(char *path);
-
 /*
-** Find the filesystem implementation with the given name
+** Find the filesystem implementation for the given fs name
 */
 static struct fs_hook const *
 find_fs(char const *name)
@@ -45,57 +41,15 @@ find_fs(char const *name)
 }
 
 /*
-** Searches the mount holding the given path
-** Bump the reference counter of the mount before returning
-*/
-static struct fs_mount *find_mount(char const *path)
-{
-	struct fs_mount *mount;
-	size_t path_len;
-	size_t mount_path_len;
-
-	path_len = strlen(path);
-	list_foreach_content(mount, &mounts, node) {
-
-		mount_path_len = strlen(mount->path);
-		if (path_len < mount_path_len)
-			continue;
-
-		if (!strncmp(mount->path, path, mount_path_len)) {
-			atomic_add(&mount->ref_count, 1);
-			return (mount);
-		}
-	}
-	return (NULL);
-}
-
-/*
-** Decrements the reference counter of the mount structure, which
-** may cause an unmount operation.
-*/
-static void
-put_mount(struct fs_mount *mount)
-{
-	if (atomic_add(&mount->ref_count, -1) == 0) {
-		list_delete(&mount->node);
-		mount->api->unmount(mount->cookie);
-		if (mount->bdev) {
-			bdev_close(mount->bdev);
-		}
-		kfree(mount->path);
-		kfree(mount);
-	}
-}
-
-/*
 ** Mounts the given file system api at the given path for the given device.
 */
 static status_t
 mount(char const *path, char const *device, struct fs_api *const api)
 {
-	struct fs_mount *mount;
+	struct fs_file *file;
 	struct bdev *bdev;
 	struct fscookie *cookie;
+	struct fs_mount *mount;
 	char *tmp;
 	status_t err;
 
@@ -105,10 +59,16 @@ mount(char const *path, char const *device, struct fs_api *const api)
 		return (ERR_NO_MEMORY);
 	}
 	resolve_path(tmp);
-	mount = find_mount(path);
+	file = find_file(tmp);
 	kfree(tmp);
 
-	if (mount) {
+	if (file == NULL) {
+		return (ERR_NOT_FOUND);
+	}
+	else if (!(file->type & FS_DIRECTORY)) {
+		return (ERR_NOT_DIRECTORY);
+	}
+	else if (file->type & FS_MOUNTPOINT) {
 		return (ERR_ALREADY_MOUNTED);
 	}
 
@@ -128,18 +88,17 @@ mount(char const *path, char const *device, struct fs_api *const api)
 		bdev_close(bdev);
 		return (ERR_NO_MEMORY);
 	}
-	mount->path = strdup(path);
+	memset(mount, 0, sizeof(*mount));
+	file->type |= FS_MOUNTPOINT;
+	file->mount = mount;
 	mount->bdev = bdev;
-	mount->cookie = cookie;
+	mount->fscookie = cookie;
 	mount->api = api;
-	mount->ref_count = 1;
-
-	list_add(&mount->node, &mounts);
 	return (OK);
 }
 
 /*
-** Mount a filesystem at a given path.
+** Mounts a filesystem at a given path.
 */
 status_t
 fs_mount(char const *path, char const *fs_name, char const *device)
@@ -160,29 +119,34 @@ status_t
 fs_unmount(char const *path)
 {
 	char *tmp;
-	struct fs_mount *mount;
+	struct fs_file *mountpoint;
 
 	tmp = strdup(path);
 	if (unlikely(!tmp)) {
 		return (ERR_NO_MEMORY);
 	}
 	resolve_path(tmp);
-	mount = find_mount(path);
+	mountpoint = find_file(tmp);
 	kfree(tmp);
-	if (!mount) {
+	if (!mountpoint) {
 		return (ERR_NOT_FOUND);
 	}
-
-	put_mount(mount); /* First one for the find_mount() that brought us here*/
-	put_mount(mount); /* Second one for mount() when creating the mount point */
+	if (!(mountpoint->type & FS_MOUNTPOINT)) {
+		return (ERR_INVALID_ARGS);
+	}
+	/* TODO do unmount */
 	return (OK);
 }
 
+/*
+** Opens the file at the given path.
+*/
 status_t
 fs_open(char const *path, struct filehandler **handler)
 {
 	struct filehandler *fh;
 	struct filecookie *cookie;
+	struct fs_file *file;
 	struct fs_mount *mount;
 	status_t err;
 	char *tmp;
@@ -191,178 +155,66 @@ fs_open(char const *path, struct filehandler **handler)
 	if (!tmp) {
 		return (ERR_NO_MEMORY);
 	}
-	resolve_path(tmp);
 
-	mount = find_mount(tmp);
+	resolve_path(tmp);
+	file = find_file(tmp);
 	kfree(tmp);
-	if (!mount) {
+	if (!file) {
 		return (ERR_NOT_FOUND);
 	}
 
-	err = mount->api->open(mount->cookie, tmp, &cookie);
+	mount = file->mount;
+	err = mount->api->open(mount->fscookie, tmp, &cookie);
 	if (err) {
-		put_mount(mount);
 		return (err);
 	}
 
 	fh = kalloc(sizeof(struct filehandler));
-	fh->cookie = cookie;
-	fh->mount = mount;
+	if (fh == NULL) {
+		return (ERR_NO_MEMORY);
+	}
+
+	fh->file = file;
+	fh->offset = 0;
 	*handler = fh;
 	return (OK);
 }
 
+/*
+** Closes the given handler, and kfrees it.
+*/
 status_t
 fs_close(struct filehandler *handler)
 {
-	status_t err;
-
-	err = handler->mount->api->close(handler->cookie);
-	if (err) {
-		return (err);
+	if (handler->file->mount) {
+		handler->file->mount->api->close(handler->file->cookie);
 	}
-	put_mount(handler->mount);
 	kfree(handler);
 	return (OK);
 }
 
 /*
-**
-** Resolves the given path, by removing double separators, '.' and '..'.
-**
-** Inspired by lk's 'fs_normalize_path()'
+** Duplicates the given file handler into a new one kheap-allocated.
 */
-void
-resolve_path(char *path)
+struct filehandler *
+fs_dup_handler(struct filehandler const *handler)
 {
-	int outpos;
-	int pos;
-	bool done;
-	char c;
+	struct filehandler *nh;
 
-	enum {
-		INITIAL,
-		FIELD_START,
-		IN_FIELD,
-		SEPARATOR,
-		SEEN_SEPARATOR,
-		DOT,
-		SEEN_DOT,
-		DOTDOT,
-		SEEN_DOTDOT,
-	} state;
-
-	state = INITIAL;
-	pos = 0;
-	outpos = 0;
-	done = false;
-
-	/* Resolve the given path */
-	while (!done)
-	{
-		c = path[pos];
-		switch (state) {
-		case INITIAL:
-			if (c == '/') {
-				state = SEPARATOR;
-			}
-			else if (c == '.') {
-				state = DOT;
-			} else {
-				state = FIELD_START;
-			}
-			break;
-		case FIELD_START:
-			if (c == '.') {
-				state = DOT;
-			} else if ( c == '\0') {
-				done = true;
-			} else {
-				state = IN_FIELD;
-			}
-			break;
-		case IN_FIELD:
-			if (c == '/') {
-				state = SEPARATOR;
-			} else if (c == '\0') {
-				done = true;
-			} else {
-				path[outpos++] = c;
-				pos++;
-			}
-			break;
-		case SEPARATOR:
-			path[outpos++] = '/';
-			pos++;
-			state = SEEN_SEPARATOR;
-			break;
-		case SEEN_SEPARATOR:
-			if (c == '/') {
-				++pos;
-			} else if (c == '\0') {
-				done = true;
-			} else {
-				state = FIELD_START;
-			}
-			break;
-		case DOT:
-			pos++;
-			state = SEEN_DOT;
-			break;
-		case SEEN_DOT:
-			if (c == '.') {
-				state = DOTDOT;
-			} else if (c == '/') { /* Filename == '.', eat it */
-				++pos;
-				state = SEEN_SEPARATOR;
-			} else if (c == '\0') {
-				done = true;
-			} else { /* Filename starting with '.' */
-				path[outpos++] = '.';
-				state = IN_FIELD;
-			}
-			break;
-		case DOTDOT:
-			pos++;
-			state = SEEN_DOTDOT;
-			break;
-		case SEEN_DOTDOT:
-			if (c == '/' || c == '\0') { /* Filename == '..' */
-				outpos -= (outpos > 0);
-				while (outpos > 0) { /* Walk backward */
-					if (path[outpos - 1] == '/') {
-						break;
-					}
-					--outpos;
-				}
-				pos++;
-				state = SEEN_SEPARATOR;
-				if (c == '\0') {
-					done = true;
-				}
-			} else { /* Filename starting with '.. */
-				path[outpos++] = '.';
-				path[outpos++] = '.';
-				state = IN_FIELD;
-			}
-			break;
-		}
+	nh = kalloc(sizeof(*nh));
+	if (nh != NULL) {
+		memcpy(nh, handler, sizeof(*nh));
 	}
-
-	/* Remove trailing slash */
-	if (outpos == 0) {
-		path[outpos++] = '/';
-	} else if (outpos > 1 && path[outpos - 1] == '/') {
-		--outpos;
-	}
-
-	path[outpos] = 0;
+	return (nh);
 }
 
 static void
 init_fs(enum init_level il __unused)
 {
 	printf("[..]\tFilesystem");
+
+	init_vfs();
+
 	if (multiboot_infos.initrd.present)
 	{
 		/* Set up initrd */
