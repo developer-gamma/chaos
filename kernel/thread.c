@@ -280,6 +280,29 @@ thread_waitpid(pid_t pid)
 }
 
 /*
+** Copies the current thread's working directory within the given buffer
+** and returns it, or returns NULL on error.
+*/
+char *
+thread_getcwd(char *buff, size_t buffsize)
+{
+	char *path;
+	size_t path_len;
+
+	LOCK_THREAD(state);
+	path = get_current_thread()->cwd;
+	path_len = strlen(path);
+	if (path_len >= buffsize) {
+		RELEASE_THREAD(state);
+		return (NULL);
+	}
+	memcpy(buff, path, path_len);
+	buff[path_len] = '\0';
+	RELEASE_THREAD(state);
+	return (buff);
+}
+
+/*
 ** Finishes the init of the thread system.
 */
 void

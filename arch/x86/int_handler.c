@@ -21,6 +21,13 @@ x86_unhandled_exception(struct iframe *iframe)
 }
 
 static status_t
+x86_division_by_zero_handler(struct iframe *iframe __unused)
+{
+	thread_exit(136); /* Boom, headshot! */
+	return (OK);
+}
+
+static status_t
 x86_breakpoint_handler(struct iframe *iframe)
 {
 	printf("Breakpoint.\n"
@@ -31,7 +38,7 @@ x86_breakpoint_handler(struct iframe *iframe)
 }
 
 static status_t
-x86_pagefault_handler(struct iframe *iframe __unused)
+x86_pagefault_handler(struct iframe *iframe)
 {
 	uintptr addr;
 
@@ -71,6 +78,9 @@ x86_exception_handler(struct iframe *iframe)
 {
 	switch (iframe->int_num)
 	{
+	case X86_INT_DIVISION_BY_ZERO:
+		x86_division_by_zero_handler(iframe);
+		break;
 	case X86_INT_BREAKPOINT:
 		x86_breakpoint_handler(iframe);
 		break;
@@ -143,6 +153,15 @@ x86_syscalls_handler(struct iframe *iframe)
 			break;
 		case EXECVE:
 			iframe->eax = thread_execve((char const *)iframe->edi, (int (*)(void))iframe->esi);
+			break;
+		case GETCWD:
+			iframe->eax = (uintptr)thread_getcwd((char *)iframe->edi, (size_t)iframe->esi);
+			break;
+		case OPEN:
+			iframe->eax = -1; /* TODO */
+			break;
+		case CLOSE:
+			iframe->eax = -1; /* TODO */
 			break;
 		default:
 			panic("Unknown syscall %p\n", iframe->eax);

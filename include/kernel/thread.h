@@ -76,6 +76,7 @@ void			thread_reschedule(void);
 void			thread_resume(struct thread *);
 void			thread_exit(int);
 int			thread_waitpid(pid_t);
+char			*thread_getcwd(char *buffer, size_t len);
 status_t		thread_execve(char const *, int (*)(void));
 enum handler_return	irq_timer_handler(void);
 

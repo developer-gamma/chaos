@@ -15,16 +15,21 @@
 
 enum syscalls_values
 {
-	UNKNOWN		= 0,
-	EXIT		= 1,
-	FORK		= 2,
-	WRITE		= 3,
-	READ		= 4,
-	BRK		= 5,
-	SBRK		= 6,
-	GETPID		= 7,
-	WAITPID		= 8,
-	EXECVE		= 9,
+	UNKNOWN		= 0x0,
+	EXIT		= 0x1,
+	FORK		= 0x2,
+	WRITE		= 0x3,
+	READ		= 0x4,
+	BRK		= 0x5,
+	SBRK		= 0x6,
+	GETPID		= 0x7,
+	WAITPID		= 0x8,
+	EXECVE		= 0x9,
+	GETCWD		= 0xA,
+	CHDIR		= 0xB,
+	GETDENTS	= 0xC,
+	OPEN		= 0xD,
+	CLOSE		= 0xE,
 };
 
 static char const *const syscalls_str[] =
@@ -39,9 +44,15 @@ static char const *const syscalls_str[] =
 	[GETPID]	= "GETPID",
 	[WAITPID]	= "WAITPID",
 	[EXECVE]	= "EXECVE",
+	[GETCWD]	= "GETCWD",
+	[CHDIR]		= "CHDIR",
+	[GETDENTS]	= "GETDENTS",
+	[OPEN]		= "OPEN",
+	[CLOSE]		= "CLOSE",
 };
 
 int			sys_open(char const *path);
+int			sys_close(int);
 int			sys_write(int fd, char const *, size_t);
 int			sys_read(int fd, char *, size_t);
 pid_t			sys_fork(void);

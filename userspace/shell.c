@@ -69,40 +69,114 @@ strcmp(char const *s1, char const *s2)
 	return (s1 - s2);
 }
 
-static inline uintptr
-get_cs(void)
+struct cmd
 {
-	uintptr cs;
+	char const *name;
+	char const *desc;
+	int (*func)(void);
+};
 
-	asm volatile("mov %%cs, %0" : "=r"(cs));
-	return (cs);
+static struct cmd cmds[];
+
+static int
+exec_help(void)
+{
+	struct cmd *cmd;
+
+	cmd = cmds;
+	puts("Available commands:\n");
+	while (cmd->desc)
+	{
+		putc('\t');
+		puts(cmd->name);
+		puts(":\t\t");
+		puts(cmd->desc);
+		putc('\n');
+		++cmd;
+	}
+	exit();
+	return (0);
 }
 
-static inline uintptr
-get_ds(void)
+static int
+exec_ls(void)
 {
-	uintptr ds;
+	char cwd[PAGE_SIZE];
+	int fd;
 
-	asm volatile("mov %%ds, %0" : "=r"(ds));
-	return (ds);
+	assert_neq(getcwd(cwd, PAGE_SIZE), NULL);
+	fd = open(cwd);
+	assert_neq(fd, -1);
+
+	/* Do stuff here */
+	puts("file1\nfile2\nfil3\n");
+
+	close(fd);
+	exit();
+	return (0);
 }
 
-static bool
-is_in_usermode(void)
+static int
+exec_sigsev(void)
 {
-	uint ds;
-	uint cs;
-
-	ds = get_ds();
-	cs = get_cs();
-	return ((ds & 0b11) && (cs & 0b11));
+	*(char *)0xDEADBEEF = 'a';
+	exit();
+	return (0);
 }
+
+static int
+exec_divzero(void)
+{
+	int j;
+
+	j = 1;
+	j = 5 / (j - 1);
+	exit();
+	return (j);
+}
+
+static struct cmd cmds[] =
+{
+	{"help", "prints this help", &exec_help},
+	{"ls", "lists filesystem", &exec_ls},
+	{"sigsev", "produces a segmentation fault", &exec_sigsev},
+	{"divz","produces a division by zero", &exec_divzero},
+
+	{NULL, NULL, NULL},
+};
 
 static void
-prompt(void)
+parse_command(char const *cmd)
 {
-	puts(is_in_usermode() ? "user" : "kernel");
-	puts(" $> ");
+	pid_t pid;
+	struct cmd *c;
+	int status;
+
+	c= cmds;
+	while (c->name) {
+		if (!strcmp(c->name, cmd)) {
+			pid = fork();
+			assert_neq(pid, -1);
+			if (pid == 0) {
+				execve(c->name, c->func);
+				puts("execve failed\n");
+				exit();
+			} else {
+				status = waitpid(pid);
+				if (status == 139) {
+					puts("Segmentation Fault\n");
+				}
+				else if (status == 136) {
+					puts("Floating Point exception\n");
+				}
+			}
+			return ;
+		}
+		++c;
+	}
+	puts("Unknown command \"");
+	puts(cmd);
+	puts("\"\n");
 }
 
 static char *
@@ -143,87 +217,14 @@ read_command(void)
 	return (strndup(buffer, buff_size));
 }
 
-struct cmd
-{
-	char const *name;
-	char const *desc;
-	int (*func)(void);
-};
-
-static struct cmd cmds[];
-
-static int
-exec_help(void)
-{
-	struct cmd *cmd;
-
-	cmd = cmds;
-	puts("Available commands:\n");
-	while (cmd->desc)
-	{
-		putc('\t');
-		puts(cmd->name);
-		puts(":\t\t");
-		puts(cmd->desc);
-		putc('\n');
-		++cmd;
-	}
-	exit();
-	return (0);
-}
-
-static int
-exec_ls(void)
-{
-	puts("file1\tfile2\tfile3\n");
-	exit();
-	return (0);
-}
-
-static int
-exec_sigsev(void)
-{
-	*(char *)0xDEADBEEF = 'a';
-	exit();
-	return (0);
-}
-
-static struct cmd cmds[] =
-{
-	{"help", "print the help", &exec_help},
-	{"ls", "list filesystem", &exec_ls},
-	{"sigsev", "produces a segmentation fault", &exec_sigsev},
-
-	{NULL, NULL, NULL},
-};
-
 static void
-parse_command(char const *cmd)
+prompt(void)
 {
-	pid_t pid;
-	struct cmd *c;
+	char buffer[PAGE_SIZE];
 
-	c= cmds;
-	while (c->name) {
-		if (!strcmp(c->name, cmd)) {
-			pid = fork();
-			assert_neq(pid, -1);
-			if (pid == 0) {
-				execve(c->name, c->func);
-				puts("execve failed\n");
-				exit();
-			} else {
-				if (waitpid(pid) == 139) {
-					puts("Segmentation Fault\n");
-				}
-			}
-			return ;
-		}
-		++c;
-	}
-	puts("Unknown command \"");
-	puts(cmd);
-	puts("\"\n");
+	assert_neq(getcwd(buffer, PAGE_SIZE), NULL);
+	puts(buffer);
+	puts(" $> ");
 }
 
 int

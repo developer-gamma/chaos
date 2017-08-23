@@ -48,3 +48,8 @@ SYSCALL			0x6,			sbrk
 SYSCALL			0x7,			getpid
 SYSCALL			0x8,			waitpid
 SYSCALL			0x9,			execve
+SYSCALL			0xA,			getcwd
+SYSCALL			0xB,			chdir
+SYSCALL			0xC,			getdents
+SYSCALL			0xD,			open
+SYSCALL			0xE,			close

@@ -28,5 +28,8 @@ void		*sbrk(intptr inc);
 pid_t		getpid(void);
 int		waitpid(pid_t);
 status_t	execve(char const *, int (*)(void));
+char		*getcwd(char *, size_t);
+int		open(char const *);
+int		close(int);
 
 #endif /* !_UNISTD_H_ */

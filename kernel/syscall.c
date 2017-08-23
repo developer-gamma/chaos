@@ -11,9 +11,9 @@
 #include <stdio.h>
 
 /*
-** Does the write system call.
-*/
-int
+ ** Does the write system call.
+ */
+	int
 sys_write(int fd __unused, char const *buff, size_t size)
 {
 	return (putsn(buff, size));

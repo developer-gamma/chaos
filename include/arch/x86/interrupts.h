@@ -56,7 +56,7 @@ struct		iframe
 */
 enum		x86_interrupts
 {
-	X86_INT_DIVIDE_BY_ZERO		= 0,
+	X86_INT_DIVISION_BY_ZERO	= 0,
 	X86_INT_DEBUG,
 	X86_INT_NMI,
 	X86_INT_BREAKPOINT,
