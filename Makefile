@@ -62,7 +62,6 @@ iso:		$(ISO)
 
 initrd:
 		make -C userspace --no-print-directory
-		ln -fs $(shell pwd)/userspace/initrd.img build/initrd.img
 
 kernel:		$(KERNEL)
 

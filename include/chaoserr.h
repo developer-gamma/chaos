@@ -50,6 +50,7 @@ enum				status
 
 	/* Filesystem errors */
 	ERR_ALREADY_MOUNTED,		/* The given mountpoint is already taken */
+	ERR_BAD_DEVICE,			/* The given this filesystem is mounted on failed to execute an important operation */
 };
 
 typedef enum status	status_t;

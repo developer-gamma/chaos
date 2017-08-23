@@ -18,9 +18,17 @@
 ** Huge thanks to him :)
 */
 
+/*
+** These structures doesn't exist, on purpose.
+** A different one is defined in each filesystem.
+** They are containing important datas that should be
+** keep from one call to another, regarding the filesystem,
+** a specific file or a specific folder.
+*/
 struct fscookie;
 struct filecookie;
 struct dircookie;
+
 struct bdev;
 
 struct fs_api
@@ -44,14 +52,14 @@ struct fs_mount
 
 struct filehandler
 {
-	struct filecookie *cookie;
 	struct fs_mount *mount;
+	struct filecookie *cookie;
 };
 
 struct dirhandler
 {
-	struct dircookie *cookie;
 	struct fs_mount *mount;
+	struct dircookie *cookie;
 };
 
 struct fs_hook

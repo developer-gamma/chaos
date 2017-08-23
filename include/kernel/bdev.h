@@ -35,6 +35,8 @@ struct bdev
 status_t		bdev_init(struct bdev *, char const *, size_t, size_t, uint);
 struct bdev		*bdev_open(char const *name);
 void			bdev_close(struct bdev *);
+ssize_t			bdev_read(struct bdev *dev, void *buf, size_t offset, size_t len);
+ssize_t			bdev_write(struct bdev *dev, void const *buf, size_t offset, size_t len);
 void			bdev_register(struct bdev *bdev);
 void			bdev_unregister(struct bdev *bdev);
 

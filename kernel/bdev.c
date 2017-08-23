@@ -63,6 +63,20 @@ bdev_open(char const *name)
 	return (NULL);
 }
 
+ssize_t
+bdev_read(struct bdev *dev, void *buff, size_t offset, size_t len)
+{
+	/* TODO bound checking */
+	return (dev->read(dev, buff, offset, len));
+}
+
+ssize_t
+bdev_write(struct bdev *dev, void const *buff, size_t offset, size_t len)
+{
+	/* TODO bound checking */
+	return (dev->write(dev, buff, offset, len));
+}
+
 void
 bdev_close(struct bdev *bdev)
 {
