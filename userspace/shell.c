@@ -33,6 +33,26 @@ putc(char c)
 }
 
 static char *
+strdup(char const *str)
+{
+	char *out;
+	size_t len;
+
+	len = strlen(str);
+	out = sbrk(len + 1);
+	if (out == NULL) {
+		return (NULL);
+	}
+	len = 0;
+	while (str[len]) {
+		out[len] = str[len];
+		++len;
+	}
+	out[len] = '\0';
+	return (out);
+}
+
+static char *
 strndup(char const *str, size_t n)
 {
 	size_t len;
@@ -69,14 +89,106 @@ strcmp(char const *s1, char const *s2)
 	return (s1 - s2);
 }
 
+static size_t
+nb_args(char const *str)
+{
+	size_t nb;
+	bool old;
+
+	nb = 0;
+	old = true;
+	while (*str)
+	{
+		if (*str != ' ' && *str != '\t' && old) {
+			++nb;
+		}
+		old = *str == ' ' || *str == '\t';
+		++str;
+	}
+	return (nb);
+}
+
+static void
+fill_argv(char *str, char const **argv)
+{
+	size_t i;
+	bool old;
+
+	i = 0;
+	old = true;
+	while (*str)
+	{
+		if (*str != ' ' && *str != '\t' && old) {
+			argv[i] = str;
+			++i;
+		}
+		old = false;
+		if (*str == ' ' || *str == '\t') {
+			*str = '\0';
+			old = true;
+		}
+		++str;
+	}
+	argv[i] = NULL;
+}
+
 struct cmd
 {
 	char const *name;
 	char const *desc;
-	int (*func)(void);
+	int (*func)();
 };
 
 static struct cmd cmds[];
+
+/* DEBUG */
+void printf(char const *, ...);
+void *kalloc(size_t);
+void kfree(void *);
+void strcat(char *, char *);
+void strcpy(char *, char *);
+
+static void
+print_dir_content(char *pwd)
+{
+	int fd;
+	struct dirent dirent;
+	char *path;
+
+	printf("%s:\n", pwd);
+
+	fd = opendir(pwd);
+	assert_neq(fd, -1);
+	while (readdir(fd, &dirent) == 0) {
+		printf("[%c] [%s]\n", dirent.dir ? 'd' : 'f', dirent.name);
+		if (strcmp(dirent.name, ".") && strcmp(dirent.name, "..")) {
+			path = kalloc(strlen(pwd) + strlen(dirent.name) + 2);
+			assert_neq(path, NULL);
+			strcpy(path, pwd);
+			strcat(path, "/");
+			strcat(path, dirent.name);
+			if (dirent.dir) {
+				printf("\n");
+				print_dir_content(path);
+				printf("\n");
+			} else {
+				//printf("(Content of %s here)\n", dirent.name);
+			}
+			kfree(path);
+		}
+	}
+	closedir(fd);
+}
+
+static int
+exec_dir(void)
+{
+	printf("--- DIR STARTING ---\n");
+	print_dir_content(".");
+	printf("--- DIR FINISHED ---\n");
+	exit();
+	return (0);
+}
 
 static int
 exec_help(void)
@@ -101,17 +213,19 @@ exec_help(void)
 static int
 exec_ls(void)
 {
-	char cwd[PAGE_SIZE];
+	struct dirent dirent;
 	int fd;
 
-	assert_neq(getcwd(cwd, PAGE_SIZE), NULL);
-	fd = open(cwd);
+	fd = opendir(".");
 	assert_neq(fd, -1);
 
 	/* Do stuff here */
-	puts("file1\nfile2\nfile3\n");
+	while (readdir(fd, &dirent) == 0) {
+		puts(dirent.name);
+		putc('\n');
+	}
 
-	close(fd);
+	closedir(fd);
 	exit();
 	return (0);
 }
@@ -138,6 +252,7 @@ exec_divzero(void)
 static struct cmd cmds[] =
 {
 	{"help", "prints this help", &exec_help},
+	{"dir", "Test the filesystem", &exec_dir},
 	{"ls", "lists filesystem", &exec_ls},
 	{"sigsev", "produces a segmentation fault", &exec_sigsev},
 	{"divz","produces a division by zero", &exec_divzero},
@@ -151,14 +266,16 @@ parse_command(char const *cmd)
 	pid_t pid;
 	struct cmd *c;
 	int status;
+	char const *argv[nb_args(cmd)]; /* VLA because we don't have a userspace malloc (yet) */
 
-	c= cmds;
+	c = cmds;
+	fill_argv(strdup(cmd), argv);
 	while (c->name) {
 		if (!strcmp(c->name, cmd)) {
 			pid = fork();
 			assert_neq(pid, -1);
 			if (pid == 0) {
-				execve(c->name, c->func);
+				execve(c->name, c->func, argv);
 				puts("execve failed\n");
 				exit();
 			} else {
@@ -217,12 +334,17 @@ read_command(void)
 	return (strndup(buffer, buff_size));
 }
 
+#include <kernel/interrupts.h>
+
 static void
 prompt(void)
 {
 	char buffer[PAGE_SIZE];
 
 	assert_neq(getcwd(buffer, PAGE_SIZE), NULL);
+	arch_disable_interrupts();
+	printf("%p ", ksbrk(0));
+	arch_enable_interrupts();
 	puts(buffer);
 	puts(" $> ");
 }

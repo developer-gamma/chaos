@@ -47,6 +47,7 @@ strcpy(char *dest, char const *src)
 		++dest;
 		++src;
 	}
+	*dest = '\0';
 	return (ori_dest);
 }
 
@@ -64,6 +65,7 @@ strncpy(char *dest, char const *src, size_t n)
 		dest[i] = '\0';
 		++i;
 	}
+	*dest = '\0';
 	return (dest);
 }
 
@@ -81,6 +83,7 @@ strcat(char *dest, char const *src)
 		++dest;
 		++src;
 	}
+	*dest = '\0';
 	return (dest_ori);
 }
 

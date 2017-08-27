@@ -15,6 +15,12 @@
 
 typedef int	pid_t;
 
+struct dirent
+{
+	char name[256];
+	bool dir;
+};
+
 /*
 ** Userspace way of calling each syscalls.
 ** These functions are implemented in each architecture.
@@ -27,9 +33,12 @@ int		brk(void *addr);
 void		*sbrk(intptr inc);
 pid_t		getpid(void);
 int		waitpid(pid_t);
-status_t	execve(char const *, int (*)(void));
+status_t	execve(char const *, int (*)(), char const *[]);
 char		*getcwd(char *, size_t);
 int		open(char const *);
 int		close(int);
+int		opendir(char const *);
+int		closedir(int);
+int		readdir(int, struct dirent *);
 
 #endif /* !_UNISTD_H_ */

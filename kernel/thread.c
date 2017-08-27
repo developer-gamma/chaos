@@ -217,7 +217,7 @@ thread_zombie_exit(struct thread *zombie)
 ** Change the program executed by the current thread
 */
 status_t
-thread_execve(char const *name, int (*main)(void))
+thread_execve(char const *name, int (*main)(), int argc, char *argv[])
 {
 	struct thread *t;
 
@@ -245,7 +245,7 @@ thread_execve(char const *name, int (*main)(void))
 	t->stack = (void *)ROUND_DOWN((uintptr)t->stack, sizeof(void *));
 
 	/* set IP and other arch-related stuff */
-	arch_thread_execve();
+	arch_thread_execve(argc, argv);
 
 	RELEASE_VASPACE(state);
 	return (OK);
@@ -356,7 +356,7 @@ fd_found:
 ** The filedescriptor must be valid, or the behaviour is undefined.
 */
 void
-thread_set_fd_handler(int fd, struct filehandler *hd)
+thread_set_fd_handler(int fd, void *hd)
 {
 	get_current_thread()->fd_tab[fd].handler = hd;
 }
@@ -374,7 +374,7 @@ thread_free_fd(int fd)
 /*
 ** Returns the handler for the given file descriptor
 */
-struct filehandler *
+void *
 thread_get_fd_handler(int fd)
 {
 	if (get_current_thread()->fd_tab[fd].taken)

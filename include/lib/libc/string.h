@@ -25,7 +25,6 @@ char		*strcat(char *dest, char const *src);
 int		strcmp(char const *s1, char const *s2) __pure;
 int		strncmp(char const *s1, char const *s2, size_t n) __pure;
 
-
 void		*memset(void *src, int c, size_t n);
 void		*memcpy(void *dest, void const *src, size_t n);
 int		memcmp(void const *s1, void const *s2, size_t n) __pure;

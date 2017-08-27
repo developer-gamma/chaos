@@ -19,11 +19,12 @@
 # define FS_BLOCKDEVICE		0b0100
 # define FS_MOUNTPOINT		0b1000
 
-typedef struct fscookie fscookie;
-typedef struct filecookie filecookie;
-typedef struct dircookie dircookie;
+struct fscookie;
+struct filecookie;
+struct dircookie;
 struct bdev;
 struct cdev;
+struct dirent;
 
 /*
 ** Api that a filesystem must (at least partialy) implement
@@ -33,35 +34,25 @@ struct fs_api
 	status_t (*mount)(struct bdev *, struct fscookie **);
 	status_t (*unmount)(struct fscookie *);
 	status_t (*open)(struct fscookie *, char const *, struct filecookie **);
-	status_t (*close)(struct filecookie *);
-	struct fs_file *(*finddir)(struct fs_file *dir, char const *name);
+	status_t (*close)(struct fscookie *, struct filecookie *);
+
+	status_t (*opendir)(struct fscookie *, char const *, struct dircookie **);
+	status_t (*readdir)(struct fscookie *, struct dircookie *, struct dirent *);
+	status_t (*closedir)(struct fscookie *, struct dircookie *);
 };
 
 /*
-** Virtual File-System's file representation
-*/
-struct fs_file
-{
-	char name[256];
-	uint type;
-
-	struct fs_mount *mount;		/* the mouting point of this file */
-	struct filecookie *cookie;	/* fs file datas */
-
-	union { /* Special more data depending of the type of this file */
-		struct bdev *bdev_data;
-		struct cdev *cdev_data;
-	};
-};
-
-/*
-** Some more content if the file is a mount point
+** Handler on a mounted filesystem
 */
 struct fs_mount
 {
-	struct bdev *bdev;
-	struct fscookie *fscookie;	/* fs datas */
-	struct fs_api const *api;	/* api of this filesystem */
+	struct list_node node;
+
+	char *path;
+	struct bdev *device;
+	struct fscookie *fscookie;
+	int ref_count;
+	struct fs_api *api;
 };
 
 /*
@@ -70,20 +61,38 @@ struct fs_mount
 */
 struct filehandler
 {
-	struct fs_file *file;
+	struct filecookie *filecookie;
+	struct fs_mount *mount;
 	size_t offset;
 };
 
-/* Vfs */
-status_t		init_vfs(void);
-void			resolve_path(char *);
-struct fs_file		*find_file(char *);
+/*
+** Handler on an opened directory
+** Used for reading, listing etc.
+*/
+struct dirhandler
+{
+	struct dircookie *dircookie;
+	struct fs_mount *mount;
+};
+
+/*
+** A directory entry, as returned by the readdir syscall.
+*/
+struct dirent
+{
+	char name[256];
+	bool dir;
+};
 
 /* Generic fs functions */
 status_t		fs_mount(char const *p, char const *fs, char const *dev);
 status_t		fs_unmount(char const *path);
 status_t		fs_open(char const *path, struct filehandler **handler);
 status_t		fs_close(struct filehandler *filehandler);
+status_t		fs_opendir(char const *, struct dirhandler **);
+status_t		fs_readdir(struct dirhandler *handler, struct dirent *dirent);
+status_t		fs_closedir(struct dirhandler *dirhandler);
 struct filehandler	*fs_dup_handler(struct filehandler const *handler);
 
 struct fs_hook

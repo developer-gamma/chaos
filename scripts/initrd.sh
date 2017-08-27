@@ -47,7 +47,7 @@ fi
 # Copies given file to the initrd at the given path
 function initrd_cpy {
 	printf "  MCOPY\t $OUTPUT -> $2\n"
-	mcopy -i "$OUTPUT_PATH" "$1" ::"$2"
+	mcopy -s -i "$OUTPUT_PATH" "$1" ::"$2"
 }
 
 # Copy binaries
@@ -57,9 +57,30 @@ for file in "$PROJECT_DIR"/userspace/*; do
 	fi
 done
 
+OLD_PWD=$(pwd)
+
+rm -rf "$TEMP"
+TEMP=$(mktemp -d)
+
+cd "$TEMP"
+
 # Copy Hello World file
-cat << EOF > "$TEMP"
+cat << EOF > "readme.txt"
 Hello, World!
 EOF
 
-initrd_cpy "$TEMP" "/readme"
+initrd_cpy "readme.txt" "/readme.txt"
+
+cd "$TEMP"
+
+mkdir dir1 dir2 dir3
+
+touch dir1/empty
+
+< /dev/urandom tr -dc '[:alnum:]' | head -c 10000 > dir2/random.txt
+
+echo "HelloWorld2" > dir2/hello2
+
+cd "$OLD_PWD"
+
+initrd_cpy "$TEMP" "/dir"

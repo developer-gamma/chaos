@@ -12,24 +12,28 @@
 
 # include <chaosdef.h>
 # include <kernel/thread.h>
+# include <unistd.h>
 
 enum syscalls_values
 {
-	UNKNOWN		= 0x0,
-	EXIT		= 0x1,
-	FORK		= 0x2,
-	WRITE		= 0x3,
-	READ		= 0x4,
-	BRK		= 0x5,
-	SBRK		= 0x6,
-	GETPID		= 0x7,
-	WAITPID		= 0x8,
-	EXECVE		= 0x9,
-	GETCWD		= 0xA,
-	CHDIR		= 0xB,
-	GETDENTS	= 0xC,
-	OPEN		= 0xD,
-	CLOSE		= 0xE,
+	UNKNOWN		= 0x00,
+	EXIT		= 0x01,
+	FORK		= 0x02,
+	WRITE		= 0x03,
+	READ		= 0x04,
+	BRK		= 0x05,
+	SBRK		= 0x06,
+	GETPID		= 0x07,
+	WAITPID		= 0x08,
+	EXECVE		= 0x09,
+	GETCWD		= 0x0A,
+	CHDIR		= 0x0B,
+	GETDENTS	= 0x0C,
+	OPEN		= 0x0D,
+	CLOSE		= 0x0E,
+	OPENDIR		= 0x0F,
+	CLOSEDIR	= 0xA0,
+	READDIR		= 0xA1,
 };
 
 static char const *const syscalls_str[] =
@@ -49,6 +53,9 @@ static char const *const syscalls_str[] =
 	[GETDENTS]	= "GETDENTS",
 	[OPEN]		= "OPEN",
 	[CLOSE]		= "CLOSE",
+	[OPENDIR]	= "OPENDIR",
+	[CLOSEDIR]	= "CLOSEDIR",
+	[READDIR]	= "READDIR",
 };
 
 int			sys_open(char const *path);
@@ -56,5 +63,9 @@ int			sys_close(int);
 int			sys_write(int fd, char const *, size_t);
 int			sys_read(int fd, char *, size_t);
 pid_t			sys_fork(void);
+int			sys_opendir(char const *path);
+int			sys_closedir(int);
+int			sys_readdir(int fd, struct dirent *dirent);
+int			sys_execve(char const *name, int (*main)(), char const *args[]);
 
 #endif /* !_KERNEL_SYSCALL_H_ */

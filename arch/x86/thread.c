@@ -44,10 +44,44 @@ thread_return_fork(void)
 	x86_return_userspace(current_thread->arch.iframe);
 }
 
+/*
+** Set default register values and pushes the arguments on the stack
+*/
 void
-arch_thread_execve(void)
+arch_thread_execve(int argc, char *argv[])
 {
+	int i;
+	void *stack;
 	struct iframe *iframe;
+	char **argv2;
+	size_t len;
+
+	argv2 = kalloc(sizeof(char *) * argc);
+	assert_neq(argv2, NULL);
+
+	/* Paste argv on thread's stack */
+	i = 0;
+	stack = current_thread->stack;
+	while (i < argc)
+	{
+		len = strlen(argv[i]);
+		stack -= (len - 1) * sizeof(char);
+		strcpy(stack, argv[i]);
+		argv2[i] = stack;
+		++i;
+	}
+	stack -= (argc + 1) * sizeof(char *);
+	memcpy(stack, argv2, (argc + 1) * sizeof(char *));
+	kfree(argv2);
+	argv2 = stack;
+	stack = (void *)ROUND_DOWN((uintptr)stack, sizeof(void *));
+
+	stack -= sizeof(char **); /* Push argv*/
+	*(char ***)stack = argv2;
+	stack -= sizeof(int); /* Push argc */
+	*(int *)stack = argc;
+	stack -= sizeof(void (*)()); /* Push dumb return value */
+	*(void (**)())stack = (void (*)())0x0;
 
 	iframe = get_current_thread()->arch.iframe;
 	iframe->ecx = 0;
@@ -56,7 +90,7 @@ arch_thread_execve(void)
 	iframe->esi = 0;
 	iframe->edi = 0;
 	iframe->eip = (uintptr)current_thread->entry;
-	iframe->esp = (uintptr)current_thread->stack;
+	iframe->esp = (uintptr)stack;
 	iframe->ebp = iframe->esp;
 }
 
