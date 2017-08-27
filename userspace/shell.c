@@ -342,9 +342,6 @@ prompt(void)
 	char buffer[PAGE_SIZE];
 
 	assert_neq(getcwd(buffer, PAGE_SIZE), NULL);
-	arch_disable_interrupts();
-	printf("%p ", ksbrk(0));
-	arch_enable_interrupts();
 	puts(buffer);
 	puts(" $> ");
 }

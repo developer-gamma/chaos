@@ -12,7 +12,7 @@
 
 # include <chaosdef.h>
 # include <kernel/thread.h>
-# include <unistd.h>
+# include <kernel/fs.h>
 
 enum syscalls_values
 {

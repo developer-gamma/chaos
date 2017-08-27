@@ -10,6 +10,7 @@
 #include <kernel/thread.h>
 #include <kernel/kalloc.h>
 #include <kernel/fs.h>
+#include <kernel/syscall.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -175,6 +176,7 @@ void
 thread_exit(int status)
 {
 	struct thread *t;
+	size_t fd;
 
 	t = get_current_thread();
 
@@ -185,6 +187,15 @@ thread_exit(int status)
 	/* init should never finish */
 	if (unlikely(t->pid == 1)) {
 		panic("%s finished (exit status: %u)", t->name, status);
+	}
+
+	/* Close the filedescriptors */
+	fd = 0;
+	while (fd < t->fd_size) {
+		if (t->fd_tab[fd].taken) {
+			sys_close(fd);
+		}
+		++fd;
 	}
 
 	/* free the virtual address space if we are the last thread using it */
