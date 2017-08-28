@@ -63,7 +63,7 @@ struct filehandler
 	union {
 		struct filecookie *filecookie;
 		struct dircookie *dircookie;
-	}
+	};
 };
 
 /*
