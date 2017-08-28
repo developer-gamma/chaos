@@ -263,3 +263,46 @@ err:
 	kfree(path);
 	return (ERR_NOT_FOUND);
 }
+
+/*
+** Walks the directory tree until it finds the given file, or returns if the file doesn't exist.
+*/
+status_t
+fat_walk_until(struct fs_fat *fat, char const *ori_path, struct fat_dirent *dirent)
+{
+	struct fat_dircookie dircookie;
+	char *path;
+	char *offset;
+	size_t len;
+
+	path = strdup(ori_path);
+	if (path == NULL) {
+		return (ERR_NO_MEMORY);
+	}
+	len = strlen(path);
+	offset = path;
+	while (*offset)
+	{
+		if (*offset == '/') {
+			*offset = '\0';
+		}
+		++offset;
+	}
+	offset = path;
+	dircookie.root = true;
+	dirent->starting_cluster = fat->root_cluster;
+	while (offset < path + len)
+	{
+		dircookie.cluster = dirent->starting_cluster;
+		dircookie.idx = 0;
+		if (fat_find_dir_entry(fat, &dircookie, offset, dirent)) {
+			goto err;
+		}
+		dircookie.root = false;
+		offset += strlen(offset) + 1;
+	}
+	return (OK);
+err:
+	kfree(path);
+	return (ERR_NOT_FOUND);
+}

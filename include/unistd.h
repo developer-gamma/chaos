@@ -37,8 +37,6 @@ status_t	execve(char const *, int (*)(), char const *[]);
 char		*getcwd(char *, size_t);
 int		open(char const *);
 int		close(int);
-int		opendir(char const *);
-int		closedir(int);
 int		readdir(int, struct dirent *);
 
 #endif /* !_UNISTD_H_ */

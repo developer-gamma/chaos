@@ -23,6 +23,7 @@ struct bdev;
 struct fat_filecookie
 {
 	uint32 cluster;
+	size_t offset;
 };
 
 struct fat_dircookie
@@ -98,7 +99,6 @@ fat_read32(uint8 const *buffer, size_t offset)
 status_t	fat_get_next_directory_entry(struct fs_fat *, struct fat_dircookie *, struct fat_dirent *);
 bool		fat_is_entry_taken(struct fat_dirent *dirent);
 void		fat_get_filename(struct fat_dirent *dirent, char *name);
-status_t	fat_walk_until_dir(struct fs_fat *, char const *, struct fat_dircookie *);
-status_t	fat_walk_until_file(struct fs_fat *, char const *, struct fat_filecookie *);
+status_t	fat_walk_until(struct fs_fat *, char const *, struct fat_dirent *);
 
 #endif /* !_LIB_FS_FAT_H_ */

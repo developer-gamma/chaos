@@ -163,12 +163,6 @@ x86_syscalls_handler(struct iframe *iframe)
 		case CLOSE:
 			iframe->eax = sys_close(iframe->edi);
 			break;
-		case OPENDIR:
-			iframe->eax = sys_opendir((char const *)iframe->edi);
-			break;
-		case CLOSEDIR:
-			iframe->eax = sys_closedir(iframe->edi);
-			break;
 		case READDIR:
 			iframe->eax = sys_readdir(iframe->edi, (struct dirent *)iframe->esi);
 			break;

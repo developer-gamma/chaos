@@ -45,7 +45,7 @@ struct filehandler;
 struct filedesc
 {
 	bool taken;
-	void *handler;
+	struct filehandler *handler;
 };
 
 struct			thread
@@ -83,9 +83,9 @@ int			init_routine(void);
 struct thread		*thread_fork(void);
 struct thread		*thread_create(char const *name, thread_entry_cb entry, size_t stack_size);
 int			thread_reserve_fd(void);
-void			thread_set_fd_handler(int fd, void *hd);
+void			thread_set_fd_handler(int fd, struct filehandler *hd);
 void			thread_free_fd(int fd);
-void			*thread_get_fd_handler(int fd);
+struct filehandler	*thread_get_fd_handler(int fd);
 void			thread_dump(void);
 void			thread_yield(void);
 void			thread_reschedule(void);

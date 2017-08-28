@@ -87,60 +87,19 @@ sys_read(int fd __unused, char *buff, size_t size)
 ** Does the opendir system call.
 */
 int
-sys_opendir(char const *path)
-{
-	struct dirhandler *dirhandler;
-	status_t err;
-	int fd;
-
-	fd = thread_reserve_fd();
-	if (fd < 0) {
-		return (-1);
-	}
-	err = fs_opendir(path, &dirhandler);
-	if (err) {
-		thread_free_fd(fd);
-		return (-1);
-	}
-	thread_set_fd_handler(fd, dirhandler);
-	return (fd);
-}
-
-/*
-** Does the opendir system call.
-*/
-int
 sys_readdir(int fd, struct dirent *dirent)
 {
-	struct dirhandler *dirhandler;
+	struct filehandler *filehandler;
 
-	dirhandler = thread_get_fd_handler(fd);
-	if (dirhandler == NULL) {
+	filehandler = thread_get_fd_handler(fd);
+	if (filehandler == NULL) {
 		return (-1);
 	}
-	if (fs_readdir(dirhandler, dirent)) {
+	if (fs_readdir(filehandler, dirent)) {
 		return (-1);
 	}
 	return (0);
 }
-
-/*
-** Does the closedir system call.
-*/
-int
-sys_closedir(int fd)
-{
-	struct dirhandler *dirhandler;
-
-	dirhandler = thread_get_fd_handler(fd);
-	if (dirhandler == NULL) {
-		return (-1);
-	}
-	fs_closedir(dirhandler);
-	thread_free_fd(fd);
-	return (0);
-}
-
 
 /*
 ** Does the fork system call.

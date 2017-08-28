@@ -31,9 +31,7 @@ enum syscalls_values
 	GETDENTS	= 0x0C,
 	OPEN		= 0x0D,
 	CLOSE		= 0x0E,
-	OPENDIR		= 0x0F,
-	CLOSEDIR	= 0xA0,
-	READDIR		= 0xA1,
+	READDIR		= 0x0F,
 };
 
 static char const *const syscalls_str[] =
@@ -53,8 +51,6 @@ static char const *const syscalls_str[] =
 	[GETDENTS]	= "GETDENTS",
 	[OPEN]		= "OPEN",
 	[CLOSE]		= "CLOSE",
-	[OPENDIR]	= "OPENDIR",
-	[CLOSEDIR]	= "CLOSEDIR",
 	[READDIR]	= "READDIR",
 };
 
@@ -63,8 +59,6 @@ int			sys_close(int);
 int			sys_write(int fd, char const *, size_t);
 int			sys_read(int fd, char *, size_t);
 pid_t			sys_fork(void);
-int			sys_opendir(char const *path);
-int			sys_closedir(int);
 int			sys_readdir(int fd, struct dirent *dirent);
 int			sys_execve(char const *name, int (*main)(), char const *args[]);
 

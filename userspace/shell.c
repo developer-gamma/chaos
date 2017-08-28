@@ -157,7 +157,7 @@ print_dir_content(char *pwd)
 
 	printf("%s:\n", pwd);
 
-	fd = opendir(pwd);
+	fd = open(pwd);
 	assert_neq(fd, -1);
 	while (readdir(fd, &dirent) == 0) {
 		printf("[%c] [%s]\n", dirent.dir ? 'd' : 'f', dirent.name);
@@ -177,7 +177,7 @@ print_dir_content(char *pwd)
 			kfree(path);
 		}
 	}
-	closedir(fd);
+	close(fd);
 }
 
 static int
@@ -216,7 +216,7 @@ exec_ls(void)
 	struct dirent dirent;
 	int fd;
 
-	fd = opendir(".");
+	fd = open(".");
 	assert_neq(fd, -1);
 
 	/* Do stuff here */
@@ -225,7 +225,7 @@ exec_ls(void)
 		putc('\n');
 	}
 
-	closedir(fd);
+	close(fd);
 	exit();
 	return (0);
 }

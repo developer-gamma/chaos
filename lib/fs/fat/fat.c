@@ -146,49 +146,62 @@ fat_unmount(struct fscookie *cookie)
 }
 
 static status_t
-fat_open(struct fscookie *fscookie, char const *path, struct filecookie **cookieptr)
+fat_open(struct fscookie *fscookie, char const *path, struct filehandler *handler)
 {
-	struct fat_filecookie *cookie;
+	struct fs_fat *fat;
+	struct fat_dirent dirent;
+	struct fat_dircookie *dircookie;
+	struct fat_filecookie *filecookie;
 	status_t err;
 
-	cookie = kalloc(sizeof(struct fat_filecookie));
-	if (cookie == NULL) {
-		return (ERR_NO_MEMORY);
+	fat = (struct fs_fat *)fscookie;
+	if (*path == '\0') { /* Looking for the root directory */
+		dircookie = kalloc(sizeof(struct fat_dircookie));
+		if (dircookie == NULL) {
+			return (ERR_NO_MEMORY);
+		}
+		dircookie->root = true;
+		dircookie->cluster = fat->root_cluster;
+		dircookie->idx = 0;
+		handler->dir = true;
+		handler->dircookie = (struct dircookie *)dircookie;
+	} else {
+		err = fat_walk_until(fat, path, &dirent);
+		if (err) {
+			return (err);
+		}
+		if (dirent.att & FAT_ATT_DIR) {
+			dircookie = kalloc(sizeof(struct fat_dircookie));
+			if (dircookie == NULL) {
+				return (ERR_NO_MEMORY);
+			}
+			dircookie->root = false;
+			dircookie->cluster = dirent.starting_cluster;
+			dircookie->idx = 0;
+			handler->dir = true;
+			handler->dircookie = (struct dircookie *)dircookie;
+		} else {
+			filecookie = kalloc(sizeof(struct fat_filecookie));
+			if (filecookie == NULL) {
+				return (ERR_NO_MEMORY);
+			}
+			filecookie->cluster = dirent.starting_cluster;
+			filecookie->offset = 0;
+			handler->dir = false;
+			handler->filecookie = (struct filecookie *)filecookie;
+		}
 	}
-	memset(cookie, 0, sizeof(*cookie));
-	err = fat_walk_until_file((struct fs_fat *)fscookie, path, cookie);
-	if (err) {
-		kfree(cookie);
-		return (err);
-	}
-	*cookieptr = (struct filecookie *)cookie;
 	return (OK);
 }
 
 static status_t
-fat_close(struct fscookie *fscookie __unused, struct filecookie *cookie)
+fat_close(struct fscookie *fscookie __unused, struct filehandler *handler)
 {
-	kfree(cookie);
-	return (OK);
-}
-
-static status_t
-fat_opendir(struct fscookie *fscookie, char const *path, struct dircookie **cookieptr)
-{
-	struct fat_dircookie *cookie;
-	status_t err;
-
-	cookie = kalloc(sizeof(struct fat_dircookie));
-	if (cookie == NULL) {
-		return (ERR_NO_MEMORY);
+	if (handler->dir) {
+		kfree(handler->dircookie);
+	} else {
+		kfree(handler->filecookie);
 	}
-	memset(cookie, 0, sizeof(*cookie));
-	err = fat_walk_until_dir((struct fs_fat *)fscookie, path, cookie);
-	if (err) {
-		kfree(cookie);
-		return (err);
-	}
-	*cookieptr = (struct dircookie *)cookie;
 	return (OK);
 }
 
@@ -216,23 +229,13 @@ fat_readdir(struct fscookie *fscookie, struct dircookie *dir, struct dirent *dir
 	}
 }
 
-static status_t
-fat_closedir(struct fscookie *fscookie __unused, struct dircookie *cookie)
-{
-	kfree(cookie);
-	return (OK);
-}
-
 static struct fs_api fat_api =
 {
 	.mount = &fat_mount,
 	.unmount = &fat_unmount,
 	.open = &fat_open,
 	.close = &fat_close,
-
-	.opendir = &fat_opendir,
 	.readdir = &fat_readdir,
-	.closedir = &fat_closedir,
 };
 
 

@@ -367,7 +367,7 @@ fd_found:
 ** The filedescriptor must be valid, or the behaviour is undefined.
 */
 void
-thread_set_fd_handler(int fd, void *hd)
+thread_set_fd_handler(int fd, struct filehandler *hd)
 {
 	get_current_thread()->fd_tab[fd].handler = hd;
 }
@@ -385,7 +385,7 @@ thread_free_fd(int fd)
 /*
 ** Returns the handler for the given file descriptor
 */
-void *
+struct filehandler *
 thread_get_fd_handler(int fd)
 {
 	if (get_current_thread()->fd_tab[fd].taken)

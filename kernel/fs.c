@@ -356,13 +356,13 @@ status_t
 fs_open(char const *path, struct filehandler **handler)
 {
 	struct filehandler *fh;
-	struct filecookie *cookie;
 	struct fs_mount *mount;
 	char *tmp;
 	char const *newpath;
 	status_t err;
 
 	mount = NULL;
+	fh = NULL;
 	tmp = resolve_input(get_current_thread()->cwd, path);
 	if (unlikely(!tmp)) {
 		return (ERR_NO_MEMORY);
@@ -374,19 +374,18 @@ fs_open(char const *path, struct filehandler **handler)
 		goto err;
 	}
 
-	err = mount->api->open(mount->fscookie, tmp, &cookie);
-	if (err) {
-		goto err;
-	}
-
 	fh = kalloc(sizeof(struct filehandler));
 	if (fh == NULL) {
 		err = ERR_NO_MEMORY;
 		goto err;
 	}
-	fh->filecookie = cookie;
+	memset(fh, 0, sizeof(*fh));
 	fh->mount = mount;
-	fh->offset = 0;
+
+	err = mount->api->open(mount->fscookie, newpath, fh);
+	if (err) {
+		goto err;
+	}
 	*handler = fh;
 	return (OK);
 
@@ -395,6 +394,7 @@ err:
 	if (mount) {
 		put_mount(mount);
 	}
+	kfree(fh);
 	return (err);
 }
 
@@ -408,7 +408,7 @@ fs_close(struct filehandler *handler)
 	struct fs_mount *mount;
 
 	mount = handler->mount;
-	err = mount->api->close(mount->fscookie, handler->filecookie);
+	err = mount->api->close(mount->fscookie, handler);
 	if (err) {
 		return (err);
 	}
@@ -418,65 +418,15 @@ fs_close(struct filehandler *handler)
 }
 
 status_t
-fs_opendir(char const *path, struct dirhandler **ph)
-{
-	struct dirhandler *handler;
-	struct dircookie *cookie;
-	struct fs_mount *mount;
-	char *tmp;
-	char const *relative;
-	status_t err;
-
-	tmp = resolve_input(get_current_thread()->cwd, path);
-	if (unlikely(!tmp)) {
-		return (ERR_NO_MEMORY);
-	}
-	resolve_path(tmp);
-	mount = find_mount(tmp, &relative);
-	if (!mount) {
-		return (ERR_NOT_FOUND);
-	}
-
-	err = mount->api->opendir(mount->fscookie, relative, &cookie);
-	kfree(tmp);
-	if (err) {
-		put_mount(mount);
-		return (err);
-	}
-	handler = kalloc(sizeof(*handler));
-	if (handler == NULL) {
-		put_mount(mount);
-		return (ERR_NO_MEMORY);
-	}
-	handler->mount = mount;
-	handler->dircookie = cookie;
-	*ph = handler;
-	return (OK);
-}
-
-status_t
-fs_readdir(struct dirhandler *handler, struct dirent *dirent)
+fs_readdir(struct filehandler *handler, struct dirent *dirent)
 {
 	struct fs_mount *mount;
 
+	if (!handler->dir) {
+		return (ERR_NOT_DIRECTORY);
+	}
 	mount = handler->mount;
 	return (mount->api->readdir(mount->fscookie, handler->dircookie, dirent));
-}
-
-status_t
-fs_closedir(struct dirhandler *handler)
-{
-	status_t err;
-	struct fs_mount *mount;
-
-	mount = handler->mount;
-	err = mount->api->closedir(mount->fscookie, handler->dircookie);
-	if (err) {
-		return (err);
-	}
-	put_mount(mount);
-	kfree(handler);
-	return (OK);
 }
 
 /*

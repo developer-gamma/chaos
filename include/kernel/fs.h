@@ -23,8 +23,8 @@ struct fscookie;
 struct filecookie;
 struct dircookie;
 struct bdev;
-struct cdev;
 struct dirent;
+struct filehandler;
 
 /*
 ** Api that a filesystem must (at least partialy) implement
@@ -33,12 +33,9 @@ struct fs_api
 {
 	status_t (*mount)(struct bdev *, struct fscookie **);
 	status_t (*unmount)(struct fscookie *);
-	status_t (*open)(struct fscookie *, char const *, struct filecookie **);
-	status_t (*close)(struct fscookie *, struct filecookie *);
-
-	status_t (*opendir)(struct fscookie *, char const *, struct dircookie **);
+	status_t (*open)(struct fscookie *, char const *, struct filehandler *);
+	status_t (*close)(struct fscookie *, struct filehandler *);
 	status_t (*readdir)(struct fscookie *, struct dircookie *, struct dirent *);
-	status_t (*closedir)(struct fscookie *, struct dircookie *);
 };
 
 /*
@@ -61,19 +58,12 @@ struct fs_mount
 */
 struct filehandler
 {
-	struct filecookie *filecookie;
 	struct fs_mount *mount;
-	size_t offset;
-};
-
-/*
-** Handler on an opened directory
-** Used for reading, listing etc.
-*/
-struct dirhandler
-{
-	struct dircookie *dircookie;
-	struct fs_mount *mount;
+	bool dir; /* false on regular files, true on directories */
+	union {
+		struct filecookie *filecookie;
+		struct dircookie *dircookie;
+	}
 };
 
 /*
@@ -90,9 +80,7 @@ status_t		fs_mount(char const *p, char const *fs, char const *dev);
 status_t		fs_unmount(char const *path);
 status_t		fs_open(char const *path, struct filehandler **handler);
 status_t		fs_close(struct filehandler *filehandler);
-status_t		fs_opendir(char const *, struct dirhandler **);
-status_t		fs_readdir(struct dirhandler *handler, struct dirent *dirent);
-status_t		fs_closedir(struct dirhandler *dirhandler);
+status_t		fs_readdir(struct filehandler *handler, struct dirent *dirent);
 struct filehandler	*fs_dup_handler(struct filehandler const *handler);
 
 struct fs_hook

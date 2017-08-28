@@ -53,6 +53,4 @@ SYSCALL			0x0B,			chdir
 SYSCALL			0x0C,			getdents
 SYSCALL			0x0D,			open
 SYSCALL			0x0E,			close
-SYSCALL			0x0F,			opendir
-SYSCALL			0xA0,			closedir
-SYSCALL			0xA1,			readdir
+SYSCALL			0x0F,			readdir
