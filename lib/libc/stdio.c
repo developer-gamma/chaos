@@ -25,7 +25,7 @@ putsn(char const *str, size_t n)
 }
 
 int
-putc(int c)
+putchar(int c)
 {
 	return (io_putc(c));
 }
@@ -74,7 +74,7 @@ vprintf_output(char const *buffer, size_t buffer_len, void *p)
 	out = p;
 	while (buffer_len > 0)
 	{
-		out->ret += putc(*buffer);
+		out->ret += putchar(*buffer);
 		++buffer;
 		--buffer_len;
 	}

@@ -17,8 +17,11 @@ BUILD_DIR="$PROJECT_DIR/build/"
 OUTPUT=initrd.img
 OUTPUT_PATH="$BUILD_DIR"/"$OUTPUT"
 
+# Add root path for distros that have a separate root path
+PATH="$PATH:/sbin:/usr/sbin/"
+
 # Check that dependencies are installed
-if ! which dd mcopy /sbin/mkfs.fat &> /dev/null; then
+if ! which dd mcopy mkfs.fat &> /dev/null; then
 	printf "  ERROR\t You must install dd, mcopy and mkfs.fat\n"
 	exit 1
 fi
@@ -39,7 +42,7 @@ fi
 
 # Format
 printf "  MKFS\t $OUTPUT\n"
-if ! /sbin/mkfs.fat -F 16 "$OUTPUT_PATH" &> "$TEMP"; then
+if ! mkfs.fat -F 16 "$OUTPUT_PATH" &> "$TEMP"; then
 	cat "$TEMP"
 	exit 1
 fi

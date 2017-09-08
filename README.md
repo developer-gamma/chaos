@@ -14,7 +14,7 @@ It's a unix-like featureless kernel, that only supports x86 (Intel 32 bits). My 
 # Build Dependencies
 * `nasm`
 * `make`
-* `gcc` or `clang`
+* `gcc` or `clang` (last version preferred)
 * `grub-mkrescue` and `xorriso` (generally packed with other binaries as `grub`)
 * `mtools`
 * `qemu` (cpu emulator) *optional*
@@ -24,9 +24,14 @@ If you are using `apt-get` as your package manager (`Debian`, `Ubuntu` etc.), yo
 apt-get install qemu grub-pc-bin xorriso nasm mtools
 ```
 
-If you are using `pacman` as your package manager (`ArchLinux`, `Manjaro` etc.), you can use this command instead:
+If you are using `pacman` as your package manager (`ArchLinux`, `Manjaro` etc.), you can use this command:
 ```bash
 pacman -Sy qemu grub libisoburn nasm
+```
+
+If you are using `portage` as your package manager (`Gentoo`), you can use this command instead:
+```bash
+emerge --ask sys-boot/libisoburn sys-fs/dosfstools sys-fs/mtools
 ```
 
 If you are using an other package manager, well... Good luck! :p

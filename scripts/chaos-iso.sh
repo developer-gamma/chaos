@@ -39,11 +39,6 @@ if [ ! -f "$BUILD_DIR/chaos.bin" ]; then
 	make -C "$PROJECT_DIR" --no-print-directory "$RULES"
 fi
 
-if ! which xorriso grub-mkrescue &> /dev/null; then
-	printf "  ERROR\t You must install xorriso and grub-mkrescue first\n"
-	exit 1
-fi
-
 TEMP=$(mktemp -d)
 
 mkdir -p "$TEMP/boot/grub"

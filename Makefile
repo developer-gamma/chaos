@@ -39,6 +39,7 @@ CFLAGS		+= \
 			-std=gnu11 \
 			-O2 \
 			-Wno-frame-address \
+			-Wno-format \
 			-Wno-unknown-warning-option \
 			-isystem include \
 			-isystem include/lib/libc \
